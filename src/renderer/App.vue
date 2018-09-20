@@ -26,16 +26,18 @@
           </v-list-tile>
         </v-list>
       </v-navigation-drawer>
-      <v-toolbar fixed app>
+      <v-toolbar fixed app clipped-right>
         <v-toolbar-side-icon @click.native.stop="leftDrawerOpen = !leftDrawerOpen"></v-toolbar-side-icon>
         <v-toolbar-title v-text="title"></v-toolbar-title>
         <v-spacer></v-spacer>
-        <v-btn
-          icon
-          @click.native.stop="rightDrawerOpen = !rightDrawerOpen"
-        >
-          <v-icon>menu</v-icon>
-        </v-btn>
+        <v-toolbar-items>
+          <v-btn
+            icon
+            @click.native.stop="rightDrawerOpen = !rightDrawerOpen"
+          >
+            <v-icon>menu</v-icon>
+          </v-btn>
+        </v-toolbar-items>
       </v-toolbar>
       <v-content>
         <v-container fluid>
@@ -48,6 +50,8 @@
         clipped
         fixed
         right
+        :temporary="rightDrawerMini"
+        :permanent="rightDrawerLarge"
         :mobile-break-point="rightDrawerBreakPoint"
         v-model="rightDrawerOpen"
         app
@@ -86,7 +90,10 @@
       rightDrawerBreakPoint () {
         return 0 // 960
       },
-      rightDrawerPermanent () {
+      rightDrawerMini () {
+        return this.$vuetify.breakpoint.xs
+      },
+      rightDrawerLarge () {
         return this.$vuetify.breakpoint.lgAndUp
       }
     }
