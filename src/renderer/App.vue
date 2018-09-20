@@ -26,7 +26,7 @@
           </v-list-tile>
         </v-list>
       </v-navigation-drawer>
-      <v-toolbar fixed app :clipped-left="clipped">
+      <v-toolbar fixed app>
         <v-toolbar-side-icon @click.native.stop="drawer = !drawer"></v-toolbar-side-icon>
         <v-toolbar-title v-text="title"></v-toolbar-title>
         <v-spacer></v-spacer>
@@ -52,9 +52,9 @@
         app
       >
       </v-navigation-drawer>
-      <v-footer :fixed="fixed" app>
+      <v-footer app>
         <v-spacer></v-spacer>
-        <span>&copy; 2017</span>
+        <span>&copy; 2018</span>
       </v-footer>
     </v-app>
   </div>
@@ -62,11 +62,12 @@
 
 <script>
   export default {
-    name: 'LED Flows',
+    name: 'led-flows',
     data: () => ({
       drawer: false,
       items: [
         { icon: 'apps', title: 'Welcome', to: '/' },
+        { icon: 'map', title: 'LED Map', to: '/led-map' },
         { icon: 'bubble_chart', title: 'Inspire', to: '/inspire' }
       ],
       miniVariant: false,

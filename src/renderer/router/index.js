@@ -16,6 +16,11 @@ export default new Router({
       component: require('@/components/InspireView').default
     },
     {
+      path: '/led-map',
+      name: 'led-map',
+      component: require('@/components/PaperView').default
+    },
+    {
       path: '*',
       redirect: '/'
     }
