@@ -51,10 +51,9 @@
 
 <style scoped>
   canvas {
-    border: 1px solid #7e57c2;
+    border: 1px solid var(--theme-primary);
     width: 100%;
     height: 100%;
     display: block;
   }
-
 </style>

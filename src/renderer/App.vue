@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" :style="cssProps">
     <v-app dark>
       <v-navigation-drawer
         temporary
@@ -73,6 +73,13 @@
       rightDrawerOpen: true
     }),
     computed: {
+      cssProps () {
+        return {
+          '--theme-primary': this.$vuetify.theme.primary,
+          '--theme-secondary': this.$vuetify.theme.secondary,
+          '--theme-accent': this.$vuetify.theme.accent
+        }
+      },
       leftDrawerMini () {
         return this.$vuetify.breakpoint.smAndDown
       },
