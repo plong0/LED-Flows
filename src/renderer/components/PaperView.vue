@@ -1,10 +1,31 @@
 <template>
-  <v-layout column justify-center>
-    <v-flex xs12>
-      <v-responsive justify-center :aspect-ratio="4/3" max-width="800" max-height="600">
-        <canvas ref="canvas"></canvas>
-      </v-responsive>
-    </v-flex>
+  <v-layout column justify-start>
+    <v-layout wrap row justify-center>
+      <v-flex xs12 sm1>
+        <v-btn
+          icon
+          color="accent"
+        >
+          <v-icon>info</v-icon>
+        </v-btn>
+      </v-flex>
+      <v-flex xs12 sm10 md8>
+        <v-responsive :aspect-ratio="4/3">
+          <canvas ref="canvas"></canvas>
+        </v-responsive>
+      </v-flex>
+    </v-layout>
+    <v-layout wrap row justify-center>
+      <v-flex xs12 sm1></v-flex>
+      <v-flex xs12 sm10 md8>
+        <v-btn
+          icon
+          color="accent"
+        >
+          <v-icon>edit</v-icon>
+        </v-btn>
+      </v-flex>
+    </v-layout>
   </v-layout>
 </template>
 
@@ -13,19 +34,17 @@
 
   export default {
     name: 'paper',
-    data () {
-      return {
-        paper: null
-      }
-    },
+    data: () => ({
+      paper: null
+    }),
     mounted () {
       this.$data.paper = paper.setup(this.$refs.canvas)
       const point = new paper.Point(50, 50)
       const size = new paper.Size(150, 250)
       let shape = new paper.Shape.Rectangle(point, size)
-      shape.strokeColor = '#558b2f'
+      shape.strokeColor = this.$vuetify.theme.accent
       shape.strokeWidth = 10
-      shape.fillColor = '#7986cb'
+      shape.fillColor = this.$vuetify.theme.secondary
     }
   }
 </script>
