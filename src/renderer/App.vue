@@ -33,9 +33,10 @@
         <v-toolbar-items>
           <v-btn
             icon
+            color="secondary"
             @click.native.stop="rightDrawerOpen = !rightDrawerOpen"
           >
-            <v-icon>menu</v-icon>
+            <v-icon>fa-lightbulb</v-icon>
           </v-btn>
         </v-toolbar-items>
       </v-toolbar>

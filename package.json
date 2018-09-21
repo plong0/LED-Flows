@@ -62,6 +62,7 @@
     "vuex": "^2.3.1"
   },
   "devDependencies": {
+    "@fortawesome/fontawesome-free": "^5.3.1",
     "babel-core": "^6.25.0",
     "babel-eslint": "^7.2.3",
     "babel-loader": "^7.1.1",
