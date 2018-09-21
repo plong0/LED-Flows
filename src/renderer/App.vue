@@ -10,12 +10,11 @@
         app
       >
         <v-list>
-          <v-list-tile 
+          <v-list-tile :class="{'primary--text': routeMatches(item.to), 'v-list__tile--active': routeMatches(item.to)}"
             router
             :to="item.to"
             :key="i"
             v-for="(item, i) in menuItems"
-            exact
           >
             <v-list-tile-action>
               <v-icon v-html="item.icon"></v-icon>
@@ -32,31 +31,48 @@
         <v-spacer></v-spacer>
         <v-toolbar-items>
           <v-btn
+            :disabled="!managerEnabled"
+            :flat="!managerEnabled"
             icon
             color="secondary"
-            @click.native.stop="rightDrawerOpen = !rightDrawerOpen"
+            to="/lights"
+            @click.native.capture="toggleRightDrawer(routePath, '/lights')"
           >
             <v-icon>fa-lightbulb</v-icon>
+          </v-btn>
+          <v-btn
+            :disabled="!managerEnabled"
+            :flat="!managerEnabled"
+            icon
+            color="secondary"
+            to="/currents"
+            @click.native.capture="toggleRightDrawer(routePath, '/currents')"
+          >
+            <v-icon>fa-ellipsis-h</v-icon>
           </v-btn>
         </v-toolbar-items>
       </v-toolbar>
       <v-content>
-        <v-container fluid>
-          <v-slide-y-transition mode="out-in">
-            <router-view></router-view>
-          </v-slide-y-transition>
-        </v-container>
+        <v-slide-y-transition mode="out-in">
+          <router-view></router-view>
+        </v-slide-y-transition>
       </v-content>
       <v-navigation-drawer
+        v-show="managerEnabled"
         clipped
         fixed
         right
         :temporary="rightDrawerMini"
-        :permanent="rightDrawerLarge"
         :mobile-break-point="rightDrawerBreakPoint"
         v-model="rightDrawerOpen"
+        :width="rightDrawerWidth"
         app
       >
+        <v-container fluid>
+          <v-slide-x-reverse-transition leave-absolute>
+            <router-view name="manager"></router-view>
+          </v-slide-x-reverse-transition>
+        </v-container>
       </v-navigation-drawer>
       <v-footer app>
         <v-spacer></v-spacer>
@@ -72,10 +88,12 @@
     data: () => ({
       title: 'LED Flows',
       menuItems: [
-        { icon: 'map', title: 'LED Map', to: '/led-map' }
+        { icon: 'map', title: 'LED Map', to: '/led-map' },
+        { icon: 'settings', title: 'Settings', to: '/settings' }
       ],
       leftDrawerOpen: false,
-      rightDrawerOpen: true
+      rightDrawerOpen: true,
+      rightDrawerBreakPoint: 0
     }),
     computed: {
       cssProps () {
@@ -85,17 +103,47 @@
           '--theme-accent': this.$vuetify.theme.accent
         }
       },
+      routePath () {
+        return this.$route.path
+      },
+      managerEnabled () {
+        return this.routeHasView('manager')
+      },
       leftDrawerMini () {
         return this.$vuetify.breakpoint.smAndDown
       },
-      rightDrawerBreakPoint () {
-        return 0 // 960
-      },
       rightDrawerMini () {
-        return this.$vuetify.breakpoint.xs
+        return this.$vuetify.breakpoint.smAndDown
       },
-      rightDrawerLarge () {
-        return this.$vuetify.breakpoint.lgAndUp
+      rightDrawerWidth () {
+        if (this.$vuetify.breakpoint.lgAndUp) {
+          return 500
+        } else if (this.$vuetify.breakpoint.mdAndUp) {
+          return 400
+        }
+        return 300
+      }
+    },
+    methods: {
+      routeHasView (view) {
+        for (let route of this.$route.matched) {
+          if (route.components[view]) {
+            return true
+          }
+        }
+        return false
+      },
+      routeMatches (to) {
+        if (this.$route.matched.length) {
+          const route = this.$route.matched[this.$route.matched.length - 1]
+          return (route.path.startsWith(to))
+        }
+        return false
+      },
+      toggleRightDrawer (from, to) {
+        if (from === to || !this.rightDrawerOpen) {
+          this.rightDrawerOpen = !this.rightDrawerOpen
+        }
       }
     }
   }

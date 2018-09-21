@@ -1,5 +1,5 @@
 <template>
-  <v-layout column justify-start>
+  <v-container fluid>
     <v-layout wrap row justify-center>
       <v-flex xs12 sm1>
         <v-btn
@@ -26,14 +26,14 @@
         </v-btn>
       </v-flex>
     </v-layout>
-  </v-layout>
+  </v-container>
 </template>
 
 <script>
   import paper from 'paper'
 
   export default {
-    name: 'paper',
+    name: 'led-map',
     data: () => ({
       paper: null
     }),
