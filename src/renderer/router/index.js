@@ -11,7 +11,7 @@ export default new Router({
       name: 'lights',
       components: {
         default: require('@/components/LEDMap/LEDMap').default,
-        manager: require('@/components/Lights/LightsManager').default
+        manager: require('@/components/Lights/LightManager').default
       }
     },
     {
@@ -20,7 +20,7 @@ export default new Router({
       name: 'currents',
       components: {
         default: require('@/components/LEDMap/LEDMap').default,
-        manager: require('@/components/Currents/CurrentsManager').default
+        manager: require('@/components/Currents/CurrentManager').default
       }
     },
     {
