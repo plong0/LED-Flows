@@ -10,7 +10,7 @@
         app
       >
         <v-list>
-          <v-list-tile :class="{'primary--text': routeMatches(item.to), 'v-list__tile--active': routeMatches(item.to)}"
+          <v-list-tile :class="menuItemClass(item)"
             router
             :to="item.to"
             :key="i"
@@ -132,6 +132,11 @@
       }
     },
     methods: {
+      menuItemClass (item) {
+        if (this.routeMatches(item.to)) {
+          return 'primary--text v-list__tile--active'
+        }
+      },
       routeHasView (view) {
         for (let route of this.$route.matched) {
           if (route.components[view]) {

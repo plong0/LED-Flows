@@ -13,7 +13,7 @@
     {{ text }}
     <v-btn
       v-show="dismissable"
-      color="pink"
+      :color="closeColor(color)"
       flat
       @click="visible = false"
     >
@@ -99,6 +99,9 @@
       })
     },
     methods: {
+      closeColor (color) {
+        return 'grey lighten-2'
+      },
       consumeCurrent () {
         if (this.current) {
           this.$store.dispatch('Snacks/consumeSnack', this.current)
