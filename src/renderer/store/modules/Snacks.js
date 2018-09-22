@@ -3,10 +3,16 @@ const state = {
 }
 
 const getters = {
-  next (state) {
+  count (state) {
+    return state.snacks.length
+  },
+  nextSnack (state) {
     if (state.snacks.length) {
       return state.snacks[0]
     }
+  },
+  snacks (state) {
+    return state.snacks
   }
 }
 
@@ -14,20 +20,23 @@ const mutations = {
   CONSUME (state) {
     state.snacks.shift()
   },
+  CONSUMED (state, { snack, hasMore }) {
+  },
   NEW_SNACK (state, snack) {
     state.snacks.push(snack)
   }
 }
 
 const actions = {
-  consume ({ commit, state }, snack) {
-    if (snack && snack === getters.next(state)) {
+  consumeSnack ({ commit, state }, snack) {
+    if (snack && snack === getters.nextSnack(state)) {
       commit('CONSUME')
+      commit('CONSUMED', {snack, hasMore: getters.count(state)})
     }
   },
-  create ({ commit, state }, {message, type = 'info', timeout = 15}) {
+  createSnack ({ commit, state }, { message, type = 'info', timeout, dismissable = true, color }) {
     if (message && type) {
-      commit('NEW_SNACK', {message, type, timeout})
+      commit('NEW_SNACK', {message, type, timeout, dismissable, color})
     }
   }
 }

@@ -76,6 +76,8 @@
           </v-slide-x-reverse-transition>
         </v-container>
       </v-navigation-drawer>
+      <snack-stack y-position="top" :delay-next="100"></snack-stack>
+      <snack-stack></snack-stack>
       <v-footer app>
         <v-spacer></v-spacer>
         <span>&copy; 2018</span>
@@ -85,8 +87,11 @@
 </template>
 
 <script>
+  import SnackStack from '@/components/SnackStack/SnackStack'
+
   export default {
     name: 'led-flows',
+    components: { SnackStack },
     data: () => ({
       title: 'LED Flows',
       menuItems: [
