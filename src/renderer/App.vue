@@ -76,8 +76,9 @@
           </v-slide-x-reverse-transition>
         </v-container>
       </v-navigation-drawer>
-      <snack-stack y-position="top" :delay-next="100"></snack-stack>
+      <snack-stack x-position="left" :immediate-next="true"></snack-stack>
       <snack-stack></snack-stack>
+      <snack-stack x-position="right" :delay-next="0" :chaining="false"></snack-stack>
       <v-footer app>
         <v-spacer></v-spacer>
         <span>&copy; 2018</span>

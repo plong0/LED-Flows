@@ -28,10 +28,10 @@ const mutations = {
 }
 
 const actions = {
-  consumeSnack ({ commit, state }, snack) {
+  consumeSnack ({ commit, state }, { snack, chaining = false }) {
     if (snack && snack === getters.nextSnack(state)) {
       commit('CONSUME')
-      commit('CONSUMED', {snack, hasMore: getters.count(state)})
+      commit('CONSUMED', {snack, chaining, hasMore: getters.count(state)})
     }
   },
   createSnack ({ commit, state }, { message, type = 'info', timeout, dismissable = true, color }) {
