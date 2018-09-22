@@ -36,10 +36,10 @@ const actions = {
       if (!getters.light(state)(light.id)) {
         commit('ADD_LIGHT', light)
       } else {
-        dispatch('Errors/default', `Light already exists with ID ${light.id}`, {root: true})
+        dispatch('Errors/warning', `Light already exists with ID #${light.id}`, { root: true })
       }
     } else {
-      dispatch('Errors/default', `Light must have an ID`, {root: true})
+      dispatch('Errors/default', `Light must have an ID`, { root: true })
     }
   }
 }
