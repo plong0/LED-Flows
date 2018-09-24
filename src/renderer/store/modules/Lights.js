@@ -39,14 +39,10 @@ const mutations = {
     const newLEDs = Array(1 + upTo - light.LEDs.length).fill().map(() => [])
     light.LEDs.push(...newLEDs)
   },
-  ADD_LEDS (state, { light, LEDs, address = -1 }) {
-    if (address < 0) {
-      // add as new address
-      light.LEDs.push(LEDs)
-    } else {
-      // concatenate to existing address
-      light.LEDs[address].push(...LEDs)
-    }
+  ADD_LEDS (state, { light, LEDs, address }) {
+    // address is required to be explicitly set so subscribers know
+    // concatenate to existing address
+    light.LEDs[address].push(...LEDs)
   }
 }
 
@@ -85,7 +81,7 @@ const actions = {
       return light
     }
   },
-  addLED ({ dispatch }, { light, LED = {}, address = -1 }) {
+  addLED ({ dispatch }, { light, LED = { x: 0, y: 0 }, address = -1 }) {
     return dispatch('addLEDs', { light, address, LEDs: [LED] })
   },
   addLEDs ({ commit, getters, dispatch }, { light: { id, ..._light }, LEDs = [], address = -1 }) {
@@ -95,12 +91,12 @@ const actions = {
     const light = getters.light(id)
     if (light) {
       if (address < 0) {
-        commit('ADD_LEDS', { light, LEDs })
-      } else {
-        dispatch('assertAddress', { light, address }).then(() => {
-          commit('ADD_LEDS', { light, LEDs, address })
-        })
+        // push next address if none given
+        address = light.LEDs.length
       }
+      dispatch('assertAddress', { light, address }).then(() => {
+        commit('ADD_LEDS', { light, LEDs, address })
+      })
     }
   },
   assertAddress ({ commit, getters }, { light: { id, ..._light }, address }) {
