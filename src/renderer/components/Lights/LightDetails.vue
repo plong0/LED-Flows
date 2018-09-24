@@ -30,44 +30,16 @@
     <v-divider></v-divider>
     <v-card-text>
       <h4>LEDs</h4>
-      <v-layout row wrap>
-        <v-flex
-          xs2 lg1
-          v-for="(LEDs, address) in light.LEDs"
-          :key="`${light.id}.${address}`"
-        >
-          <v-btn
-            small
-            icon
-            color="accent"
-          >
-            <v-badge
-              bottom
-              color="success"
-              :value="LEDs.length > 1"
-            >
-              <span slot="badge">{{LEDs.length}}</span>
-              {{address}}
-            </v-badge>
-          </v-btn>
-        </v-flex>
-      </v-layout>
-      <v-layout row wrap justify-center class="mt-1">
-        <v-btn
-          round
-          color="secondary"
-          @click="addLED(light)"
-        >
-          <v-icon left>fa-plus</v-icon>
-          Add LED
-        </v-btn>
-      </v-layout>
+      <light-leds :light="light" :addLED="addLED"></light-leds>
     </v-card-text>
   </v-card>
 </template>
 
 <script>
+  import LightLeds from './LightLeds'
+
   export default {
+    components: { LightLeds },
     props: {
       light: {
         type: Object,

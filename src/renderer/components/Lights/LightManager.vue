@@ -34,7 +34,7 @@
           </v-btn>
         </v-layout>
       </v-slide-y-transition>
-      <v-scale-transition origin="center center">
+      <v-scale-transition>
         <light-details v-if="lightLoaded" :light="light" :onClose="closeLight">
         </light-details>
       </v-scale-transition>
@@ -84,6 +84,15 @@
           this.activeID = light.id
         })
       },
+      closeLight () {
+        this.activeID = null
+      },
+      lightTitle (light) {
+        if (light && light.hasOwnProperty('id')) {
+          return `[#${light.id}] ${light.name}`
+        }
+        return ''
+      },
       loadLight (activeID) {
         if (this.lightID !== null) {
           // make a transition between lights
@@ -94,15 +103,6 @@
         } else {
           this.lightID = activeID
         }
-      },
-      closeLight () {
-        this.activeID = null
-      },
-      lightTitle (light) {
-        if (light && light.hasOwnProperty('id')) {
-          return `[#${light.id}] ${light.name}`
-        }
-        return ''
       }
     }
   }
