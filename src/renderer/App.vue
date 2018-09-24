@@ -10,7 +10,7 @@
         app
       >
         <v-list>
-          <v-list-tile :class="menuItemClass(item)"
+          <v-list-tile :class="{ 'primary--text v-list__tile--active': routeMatches(item.to) }"
             router
             :to="item.to"
             :key="i"
@@ -76,9 +76,7 @@
           </v-slide-x-reverse-transition>
         </v-container>
       </v-navigation-drawer>
-      <snack-stack x-position="left" :immediate-next="true"></snack-stack>
       <snack-stack></snack-stack>
-      <snack-stack x-position="right" :delay-next="0" :chaining="false"></snack-stack>
       <v-footer app>
         <v-spacer></v-spacer>
         <span>&copy; 2018</span>
@@ -133,11 +131,6 @@
       }
     },
     methods: {
-      menuItemClass (item) {
-        if (this.routeMatches(item.to)) {
-          return 'primary--text v-list__tile--active'
-        }
-      },
       routeHasView (view) {
         for (let route of this.$route.matched) {
           if (route.components[view]) {

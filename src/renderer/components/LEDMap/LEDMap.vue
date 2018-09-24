@@ -3,10 +3,11 @@
     <v-layout wrap row justify-center>
       <v-flex xs12 sm1>
         <v-btn
+          large
           icon
           color="accent"
         >
-          <v-icon>info</v-icon>
+          <v-icon>fa-info</v-icon>
         </v-btn>
       </v-flex>
       <v-flex xs12 sm10 md8>
@@ -19,10 +20,25 @@
       <v-flex xs12 sm1></v-flex>
       <v-flex xs12 sm10 md8>
         <v-btn
+          large
+          icon
+          color="primary"
+        >
+          <v-icon>fa-plus</v-icon>
+        </v-btn>
+        <v-btn
+          large
+          icon
+          color="secondary"
+        >
+          <v-icon>fa-pencil-alt</v-icon>
+        </v-btn>
+        <v-btn
+          large
           icon
           color="accent"
         >
-          <v-icon>edit</v-icon>
+          <v-icon>fa-star</v-icon>
         </v-btn>
       </v-flex>
     </v-layout>
@@ -31,6 +47,7 @@
 
 <script>
   import paper from 'paper'
+  // import colors from 'vuetify/es5/util/colors'
 
   export default {
     name: 'led-map',
@@ -38,13 +55,7 @@
       paper: null
     }),
     mounted () {
-      this.$data.paper = paper.setup(this.$refs.canvas)
-      const point = new paper.Point(50, 50)
-      const size = new paper.Size(150, 250)
-      let shape = new paper.Shape.Rectangle(point, size)
-      shape.strokeColor = this.$vuetify.theme.accent
-      shape.strokeWidth = 10
-      shape.fillColor = this.$vuetify.theme.secondary
+      this.paper = paper.setup(this.$refs.canvas)
     }
   }
 </script>
