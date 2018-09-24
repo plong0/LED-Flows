@@ -1,45 +1,112 @@
+import Vue from 'vue'
+
 const state = {
-  lights: []
+  lights: {}
 }
 
 const getters = {
-  lights: (state) => {
-    return state.lights
-  },
-  light: (state) => (id) => {
-    if (id || id === 0) {
-      return state.lights.find((item) => {
-        return (item.id === id)
-      })
+  light: (state) => (id) => state.lights[id],
+  lights: (state) => Object.keys(state.lights).sort().map(id => state.lights[id]),
+  lightAddress: (state, getters) => (id, address) => {
+    const light = getters.light(id)
+    if (light && address >= 0 && address < light.LEDs.length) {
+      return light.LEDs[address]
     }
   },
   nextID: (state) => {
-    let maxID = -1
-    for (let light of state.lights) {
-      if (!isNaN(light.id) && light.id > maxID) {
-        maxID = light.id
-      }
-    }
-    return (maxID + 1)
+    const keys = Object.keys(state.lights).map(id => parseInt(id))
+    return (keys.length ? Math.max(...keys) + 1 : 0)
   }
 }
 
 const mutations = {
   ADD_LIGHT (state, light) {
-    state.lights.push(light)
+    Vue.set(state.lights, light.id, light)
+  },
+  DELETE_LIGHT (state, light) {
+    Vue.delete(state.lights, light.id)
+  },
+  SET_LIGHT (state, light) {
+    Vue.set(state.lights, light.id, light)
+  },
+  UPDATE_LIGHT (state, { light, updates }) {
+    for (let prop in updates) {
+      Vue.set(light, prop, updates[prop])
+    }
+  },
+  FILL_ADDRESSES (state, { light, upTo }) {
+    // append as many empty address arrays as needed to have (upTo + 1) entries (counting starts at 0 and upTo is a target address)
+    const newLEDs = Array(1 + upTo - light.LEDs.length).fill().map(() => [])
+    light.LEDs.push(...newLEDs)
+  },
+  ADD_LEDS (state, { light, LEDs, address = -1 }) {
+    if (address < 0) {
+      // add as new address
+      light.LEDs.push(LEDs)
+    } else {
+      // concatenate to existing address
+      light.LEDs[address].push(...LEDs)
+    }
   }
 }
 
 const actions = {
-  addLight ({ commit, dispatch, state }, light) {
-    if (light && (light.id || light.id === 0)) {
-      if (!getters.light(state)(light.id)) {
-        commit('ADD_LIGHT', light)
-      } else {
-        dispatch('Errors/warning', `Light already exists with ID #${light.id}`, { root: true })
+  createLight ({ commit, getters }, { name = 'New Light' } = {}) {
+    const light = {
+      id: getters.nextID,
+      name,
+      LEDs: []
+    }
+    commit('ADD_LIGHT', light)
+    return light
+  },
+  deleteLight ({ commit, getters }, light) {
+    if (light && light.hasOwnProperty('id')) {
+      const oldLight = getters.light(light.id)
+      if (oldLight) {
+        commit('DELETE_LIGHT', oldLight)
       }
-    } else {
-      dispatch('Errors/default', `Light must have an ID`, { root: true })
+      return oldLight
+    }
+  },
+  setLight ({ commit }, light) {
+    if (light && light.hasOwnProperty('id')) {
+      if (!light.hasOwnProperty('LEDs')) {
+        light.LEDs = []
+      }
+      commit('SET_LIGHT', light)
+      return light
+    }
+  },
+  updateLight ({ commit, getters }, { id, ...updates }) {
+    const light = getters.light(id)
+    if (light) {
+      commit('UPDATE_LIGHT', { light, updates })
+      return light
+    }
+  },
+  addLED ({ dispatch }, { light, LED = {}, address = -1 }) {
+    return dispatch('addLEDs', { light, address, LEDs: [LED] })
+  },
+  addLEDs ({ commit, getters, dispatch }, { light: { id, ..._light }, LEDs = [], address = -1 }) {
+    if (!LEDs.length) {
+      return
+    }
+    const light = getters.light(id)
+    if (light) {
+      if (address < 0) {
+        commit('ADD_LEDS', { light, LEDs })
+      } else {
+        dispatch('assertAddress', { light, address }).then(() => {
+          commit('ADD_LEDS', { light, LEDs, address })
+        })
+      }
+    }
+  },
+  assertAddress ({ commit, getters }, { light: { id, ..._light }, address }) {
+    const light = getters.light(id)
+    if (light && light.LEDs.length <= address) {
+      commit('FILL_ADDRESSES', { light, upTo: address })
     }
   }
 }
