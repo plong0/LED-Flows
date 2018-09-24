@@ -46,16 +46,45 @@
 </template>
 
 <script>
-  import paper from 'paper'
-  // import colors from 'vuetify/es5/util/colors'
+  import { mapGetters } from 'vuex'
+  import PaperLights from '@/bridge/PaperLights/PaperLights'
+  import colors from 'vuetify/es5/util/colors'
 
   export default {
     name: 'led-map',
     data: () => ({
-      paper: null
+      lightMap: null
     }),
+    computed: {
+      ...mapGetters({
+        lights: 'Lights/lights'
+      })
+    },
+    created () {
+      this.$store.subscribe(this.storeUpdated)
+    },
     mounted () {
-      this.paper = paper.setup(this.$refs.canvas)
+      this.lightMap = new PaperLights({
+        canvas: this.$refs.canvas,
+        theme: {
+          'LED-radius': 25,
+          'LED-style-fillColor': this.$vuetify.theme.secondary,
+          'LED-style-strokeColor': colors.lime.accent2
+        },
+        lights: this.lights
+      })
+    },
+    methods: {
+      ledsAdded (light, address, LEDs) {
+        this.lightMap.ledsAdded(light, address, LEDs)
+      },
+      storeUpdated ({ type, payload }, state) {
+        switch (type) {
+          case 'Lights/ADD_LEDS':
+            this.ledsAdded(payload.light, payload.address, payload.LEDs)
+            break
+        }
+      }
     }
   }
 </script>
