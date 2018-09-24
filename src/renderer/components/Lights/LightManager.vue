@@ -35,7 +35,7 @@
         </v-layout>
       </v-slide-y-transition>
       <v-scale-transition>
-        <light-details v-if="lightLoaded" :light="light" :onClose="closeLight">
+        <light-details v-if="lightLoaded" :light="light" :addLED="addLED" :onClose="closeLight">
         </light-details>
       </v-scale-transition>
     </v-flex>
@@ -83,6 +83,9 @@
         this.$store.dispatch('Lights/createLight').then(light => {
           this.activeID = light.id
         })
+      },
+      addLED (light, address) {
+        this.$store.dispatch('Lights/addLED', {light, address})
       },
       closeLight () {
         this.activeID = null

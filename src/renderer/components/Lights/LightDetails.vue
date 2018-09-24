@@ -41,6 +41,9 @@
   export default {
     components: { LightLeds },
     props: {
+      addLED: {
+        type: Function
+      },
       light: {
         type: Object,
         required: true,
@@ -50,11 +53,6 @@
       },
       onClose: {
         type: Function
-      }
-    },
-    methods: {
-      addLED (light, address) {
-        this.$store.dispatch('Lights/addLED', {light, LED: {x: 50, y: 50}, address})
       }
     }
   }
