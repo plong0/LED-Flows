@@ -6,7 +6,7 @@ const state = {
 
 const getters = {
   light: (state) => (id) => state.lights[id],
-  lights: (state) => Object.keys(state.lights).sort().map(id => state.lights[id]),
+  lights: (state) => Object.keys(state.lights).sort((a, b) => (parseInt(a) - parseInt(b))).map(id => state.lights[id]),
   lightAddress: (state, getters) => (id, address) => {
     const light = getters.light(id)
     if (light && address >= 0 && address < light.LEDs.length) {
