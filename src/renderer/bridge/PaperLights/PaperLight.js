@@ -8,6 +8,12 @@ export default class PaperLight {
     this.$PLT = theme
     this.$paperLEDs = []
   }
+  assertPaper () {
+    if (this.$paper) {
+      this.$paper.activate()
+      return this.$paper
+    }
+  }
   ledsAdded (address, LEDs) {
     this.refresh()
   }
@@ -15,9 +21,11 @@ export default class PaperLight {
     if (!PLD.isLED(LED)) {
       throw new TypeError('Invalid LED')
     }
-    let paperLED = new paper.Shape.Circle({x: LED.x, y: LED.y}, this.theme.get('LED-radius'))
-    this.theme.apply(this.theme.styleForLED, paperLED)
-    return paperLED
+    if (this.assertPaper()) {
+      let paperLED = new paper.Shape.Circle({x: LED.x, y: LED.y}, this.theme.get('LED-radius'))
+      this.theme.apply(this.theme.styleForLED, paperLED)
+      return paperLED
+    }
   }
   refreshPaperLED (paperLED, LED) {
     if (!PLD.isLED(LED)) {

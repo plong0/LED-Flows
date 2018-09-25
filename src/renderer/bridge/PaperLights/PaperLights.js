@@ -6,7 +6,7 @@ import PaperLight from './PaperLight'
 export default class PaperLights {
   constructor ({ canvas, theme = {}, lights = [] }) {
     if (canvas) {
-      this.$paper = paper.setup(canvas)
+      this.$paper = new paper.Project(canvas)
     }
     this.$PLT = new PaperLightsTheme(theme)
     this.$lights = {}
@@ -25,6 +25,12 @@ export default class PaperLights {
       if (light) {
         light.ledsAdded(address, LEDs)
       }
+    }
+  }
+  assertPaper () {
+    if (this.$paper) {
+      this.$paper.activate()
+      return this.$paper
     }
   }
   assertLight (light) {
