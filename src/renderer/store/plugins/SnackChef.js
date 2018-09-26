@@ -17,7 +17,7 @@ const SnackChef = (store) => {
         persist: payload.persist,
         dismissable: payload.dismissable
       })
-    } else if (type.startsWith('Lights')) {
+    } else if (type.startsWith('Lights') && payload && typeof payload === 'object') {
       let name = (payload.name ? `"${payload.name}"` : '')
       if (payload.id || payload.id === 0) {
         if (!name) {

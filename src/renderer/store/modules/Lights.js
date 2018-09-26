@@ -1,10 +1,12 @@
 import Vue from 'vue'
 
 const state = {
+  activeLight: null,
   lights: {}
 }
 
 const getters = {
+  activeLight: (state) => state.activeLight,
   light: (state) => (id) => state.lights[id],
   lights: (state) => Object.keys(state.lights).sort((a, b) => (parseInt(a) - parseInt(b))).map(id => state.lights[id]),
   lightAddress: (state, getters) => (id, address) => {
@@ -20,6 +22,9 @@ const getters = {
 }
 
 const mutations = {
+  ACTIVATE_LIGHT (state, light) {
+    Vue.set(state, 'activeLight', light)
+  },
   ADD_LIGHT (state, light) {
     Vue.set(state.lights, light.id, light)
   },
@@ -47,6 +52,14 @@ const mutations = {
 }
 
 const actions = {
+  activateLight ({ commit, getters }, light = null) {
+    if (light === null || (light && light.hasOwnProperty('id'))) {
+      if (light !== null) {
+        light = getters.light(light.id)
+      }
+      commit('ACTIVATE_LIGHT', light)
+    }
+  },
   createLight ({ commit, getters }, { name = 'New Light' } = {}) {
     const light = {
       id: getters.nextID,

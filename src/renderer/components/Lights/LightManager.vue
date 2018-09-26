@@ -35,7 +35,7 @@
         </v-layout>
       </v-slide-y-transition>
       <v-scale-transition>
-        <light-details v-if="lightLoaded" :light="light" :addLED="addLED" :onClose="closeLight">
+        <light-details v-if="light" :light="light" :addLED="addLED" :onClose="closeLight">
         </light-details>
       </v-scale-transition>
     </v-flex>
@@ -50,31 +50,22 @@
     name: 'light-manager',
     components: { LightDetails },
     data: () => ({
-      activeID: null,
-      lightID: null
+      activeID: null
     }),
     computed: {
       absoluteStyle () {
-        if (this.lightLoaded) {
+        if (this.light) {
           return { position: 'absolute', left: 0, right: 0 }
         }
       },
-      lightLoaded () {
-        return (this.lightSelected && this.lightID === this.activeID)
-      },
       lightSelected () {
         return (this.activeID !== null)
-      },
-      light () {
-        if (this.lightID !== null) {
-          return this.$store.getters['Lights/light'](this.lightID)
-        }
-        return {}
       },
       message () {
         return `${this.lights.length ? 'Select' : 'Add'} a light to ${this.lights.length ? 'continue' : 'start'} the magic.`
       },
       ...mapGetters({
+        light: 'Lights/activeLight',
         lights: 'Lights/lights'
       })
     },
@@ -90,7 +81,7 @@
           - auto-set compass to vector of last 2 addresses in Light
             - (multi-LED addresses should use an average of all their locations)
         */
-        this.$store.dispatch('Lights/addLED', {light, address})
+        this.$store.dispatch('Lights/addLED', { light, address })
       },
       closeLight () {
         this.activeID = null
@@ -102,14 +93,14 @@
         return ''
       },
       loadLight (activeID) {
-        if (this.lightID !== null) {
-          // make a transition between lights
-          this.lightID = null
-          setTimeout(() => {
-            this.lightID = activeID
+        if (this.light !== null) {
+          // make a transition between lights by clearing it, then setting it on next tick
+          this.$store.dispatch('Lights/activateLight')
+          this.$nextTick(() => {
+            this.$store.dispatch('Lights/activateLight', { id: activeID })
           })
         } else {
-          this.lightID = activeID
+          this.$store.dispatch('Lights/activateLight', { id: activeID })
         }
       }
     }
