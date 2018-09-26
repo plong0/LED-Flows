@@ -42,12 +42,43 @@ $display-breakpoints := {
   lg-and-up: "only screen and (min-width: %s)" % $grid-breakpoints.lg
   xl-only: "only screen and (min-width: %s)" % $grid-breakpoints.xl
 }
-for $size, $media_query in $display-breakpoints
-  .hidden
-    &-{$size}
-      @media $media_query
-        &.v-divider--vertical
-          display: inline-flex !important
+
+$grid-sizes := xs sm md lg xl
+$grid-columns := 12
+for $size in $grid-sizes
+  .size-context-{$size}
+    for n in (1..$grid-columns)
+      .flex.{$size}{n}
+        flex-basis: (n / $grid-columns * 100)%
+        flex-grow: 0
+        max-width: (n / $grid-columns * 100)%
+
+      .flex.order-{$size}{n}
+        order: n
+
+    for n in (0..$grid-columns)
+      .flex.offset-{$size}{n}
+        // Offsets can only ever work in row layouts
+        margin-left: (n / $grid-columns * 100)%
+
+    .text-{$size}-left
+      text-align: left !important
+
+    .text-{$size}-center
+      text-align: center !important
+
+    .text-{$size}-right
+      text-align: right !important
+
+    .text-{$size}-justify
+      text-align: justify !important
+
+    for $size, $media_query in $display-breakpoints
+      .hidden
+        &-{$size}
+          @media $media_query
+            &.v-divider--vertical
+              display: inline-flex !important
 
 .size-context-xs
   .hidden-xs-only,
@@ -86,34 +117,4 @@ for $size, $media_query in $display-breakpoints
   .hidden-md-and-up,
   .hidden-sm-and-up
     display: none !important;
-
-$grid-sizes := xs sm md lg xl
-$grid-columns := 12
-for $size in $grid-sizes
-  .size-context-{$size}
-    for n in (1..$grid-columns)
-      .flex.{$size}{n}
-        flex-basis: (n / $grid-columns * 100)%
-        flex-grow: 0
-        max-width: (n / $grid-columns * 100)%
-
-      .flex.order-{$size}{n}
-        order: n
-
-    for n in (0..$grid-columns)
-      .flex.offset-{$size}{n}
-        // Offsets can only ever work in row layouts
-        margin-left: (n / $grid-columns * 100)%
-
-    .text-{$size}-left
-      text-align: left !important
-
-    .text-{$size}-center
-      text-align: center !important
-
-    .text-{$size}-right
-      text-align: right !important
-
-    .text-{$size}-justify
-      text-align: justify !important
 </style>

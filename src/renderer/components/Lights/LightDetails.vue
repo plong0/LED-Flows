@@ -16,13 +16,15 @@
     </v-card-title>
     <v-card-title>
       <v-layout row wrap justify-space-between>
-        <v-flex xs12 md3>
-          <strong>ID:</strong> #{{light.id}}
+        <v-flex xs12 sm5 md2>
+          <strong>ID:</strong> {{light.id}}
         </v-flex>
-        <v-flex xs12 sm6 md3>
-          <strong>Address:</strong> {{light.id}}
+        <v-divider vertical class="hidden-xs-only"></v-divider>
+        <v-flex xs12 sm6 md5 class="text-sm-right text-md-center">
+          <strong>Address:</strong> 64
         </v-flex>
-        <v-flex xs12 sm6 md4>
+        <v-divider vertical class="hidden-sm-and-down"></v-divider>
+        <v-flex xs12 sm12 md4 class="text-sm-right">
           <strong>Loc:</strong> [ 100 , 200 ]
         </v-flex>
       </v-layout>
