@@ -17,21 +17,31 @@ export default class PaperLight {
   ledsAdded (address, LEDs) {
     this.refresh()
   }
-  generatePaperLED (LED) {
+  generatePaperLED (LED, address) {
     if (!PLD.isLED(LED)) {
       throw new TypeError('Invalid LED')
     }
     if (this.assertPaper()) {
-      let paperLED = new paper.Shape.Circle({x: LED.x, y: LED.y}, this.theme.get('LED-radius'))
+      let paperLED = new paper.Shape.Circle(this.normalizePoint(LED), this.theme.get('LED-radius'))
+      paperLED.data.light = this
       this.theme.apply(this.theme.styleForLED, paperLED)
-      return paperLED
+      this.$paperLEDs.push(paperLED)
+      return this.refreshPaperLED(paperLED, LED, address)
     }
   }
-  refreshPaperLED (paperLED, LED) {
+  normalizePoint (point, toLocal = false) {
+    // TODO: normalize a point
+    return {
+      x: point.x,
+      y: point.y
+    }
+  }
+  refreshPaperLED (paperLED, LED, address) {
     if (!PLD.isLED(LED)) {
       throw new TypeError('Invalid LED')
     }
-    paperLED.set({ x: LED.x, y: LED.y })
+    paperLED.set(this.normalizePoint(LED))
+    paperLED.data.address = address
     return paperLED
   }
   refresh () {
@@ -40,13 +50,11 @@ export default class PaperLight {
       for (const LED of address) {
         try {
           if (index >= this.$paperLEDs.length) {
-            const newLED = this.generatePaperLED(LED)
-            if (newLED) {
-              this.$paperLEDs.push(newLED)
+            if (this.generatePaperLED(LED, address)) {
               index++
             }
           } else {
-            this.refreshPaperLED(this.$paperLEDs[index], LED)
+            this.refreshPaperLED(this.$paperLEDs[index], LED, address)
             index++
           }
         } catch (error) {
@@ -55,7 +63,6 @@ export default class PaperLight {
       }
     }
   }
-
   get id () {
     return this.$model.id
   }

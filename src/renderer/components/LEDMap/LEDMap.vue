@@ -22,21 +22,22 @@
         <v-btn
           large
           icon
-          color="primary"
+          :color="buttonColor('Tool/AddLed')"
+          @click="activateTool('AddLed')"
         >
-          <v-icon>fa-plus</v-icon>
+          <v-icon>far fa-dot-circle</v-icon>
         </v-btn>
         <v-btn
           large
           icon
-          color="secondary"
+          :color="buttonColor('Tool/Edit')"
         >
           <v-icon>fa-pencil-alt</v-icon>
         </v-btn>
         <v-btn
           large
           icon
-          color="accent"
+          :color="buttonColor('Star')"
         >
           <v-icon>fa-star</v-icon>
         </v-btn>
@@ -66,6 +67,10 @@
     mounted () {
       this.lightMap = new PaperLights({
         canvas: this.$refs.canvas,
+        actions: {
+          addLED: this.addLED,
+          addLight: this.addLight
+        },
         theme: {
           'LED-radius': 25,
           'LED-style-fillColor': this.$vuetify.theme.secondary,
@@ -75,6 +80,23 @@
       })
     },
     methods: {
+      activateTool (name) {
+        this.lightMap.activateTool(name)
+      },
+      addLED (light, address, LED) {
+        console.log(`LEDMap addLED @ [${LED.x}, ${LED.y}] => `, light, address)
+      },
+      addLight (location) {
+        console.log(`LEDMap addLight @ [${location.x}, ${location.y}]`)
+      },
+      buttonColor (name) {
+        if (name.startsWith('Tool')) {
+          if (this.lightMap && this.lightMap.activeTool === name.substr(5)) {
+            return 'primary'
+          }
+        }
+        return 'secondary'
+      },
       ledsAdded (light, address, LEDs) {
         this.lightMap.ledsAdded(light, address, LEDs)
       },
