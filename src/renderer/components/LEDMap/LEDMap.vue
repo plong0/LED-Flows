@@ -90,12 +90,13 @@
         console.log(`LEDMap addLight @ [${location.x}, ${location.y}]`)
       },
       buttonColor (name) {
-        if (name.startsWith('Tool')) {
-          if (this.lightMap && this.lightMap.activeTool === name.substr(5)) {
-            return 'primary'
-          }
+        if (this.isActiveTool(name)) {
+          return 'accent'
         }
         return 'secondary'
+      },
+      isActiveTool (name) {
+        return (name.startsWith('Tool') && this.lightMap && this.lightMap.activeTool === name.substr(5))
       },
       ledsAdded (light, address, LEDs) {
         this.lightMap.ledsAdded(light, address, LEDs)

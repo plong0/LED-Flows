@@ -14,7 +14,8 @@ Vue.use(Vuetify, {
   theme: {
     'primary': colors.deepPurple.lighten1,
     'secondary': colors.indigo.lighten1,
-    'accent': colors.teal.lighten1,
+    'accent': colors.lightGreen.lighten1,
+    'accent2': colors.lightGreen.accent1,
     'error': colors.red.darken1,
     'info': colors.blue.darken2,
     'success': colors.green.darken1,

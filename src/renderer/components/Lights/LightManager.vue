@@ -20,7 +20,7 @@
     </v-flex>
     <v-flex :style="{ position: 'relative' }">
       <v-slide-y-transition>
-        <h3 v-show="!lightSelected" :style="absoluteStyle" class="text-xs-center accent--text font-weight-regular font-italic">{{message}}</h3>
+        <h3 v-show="!lightSelected" :style="absoluteStyle" class="text-xs-center accent2--text font-weight-regular font-italic">{{message}}</h3>
       </v-slide-y-transition>
       <v-slide-y-transition>
         <v-layout row wrap justify-center v-show="!lightSelected" :style="absoluteStyle" class="mt-3">
@@ -85,6 +85,11 @@
         })
       },
       addLED (light, address) {
+        /** TODO: accept a location
+          - read location from last LED + compass
+          - auto-set compass to vector of last 2 addresses in Light
+            - (multi-LED addresses should use an average of all their locations)
+        */
         this.$store.dispatch('Lights/addLED', {light, address})
       },
       closeLight () {

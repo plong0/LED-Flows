@@ -106,7 +106,8 @@
         return {
           '--theme-primary': this.$vuetify.theme.primary,
           '--theme-secondary': this.$vuetify.theme.secondary,
-          '--theme-accent': this.$vuetify.theme.accent
+          '--theme-accent': this.$vuetify.theme.accent,
+          '--theme-accent2': this.$vuetify.theme.accent2
         }
       },
       routePath () {
