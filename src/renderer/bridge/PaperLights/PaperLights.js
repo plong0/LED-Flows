@@ -39,6 +39,9 @@ export default class PaperLights {
   activateAddress (address = null) {
   }
   activateLight (light = null, address = null) {
+    if (this.$state.activeLight && (!light || this.$state.activeLight.id !== light.id)) {
+      this.activateTool()
+    }
     this.$state.activeLight = light
     this.$state.activeAddress = address
   }
