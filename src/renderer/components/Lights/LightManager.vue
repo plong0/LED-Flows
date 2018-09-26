@@ -14,7 +14,7 @@
         :item-text="lightTitle"
         v-model="activeID"
         type="number"
-        @change="loadLight"
+        @change="selectLight"
       >
       </v-select>
     </v-flex>
@@ -35,7 +35,7 @@
         </v-layout>
       </v-slide-y-transition>
       <v-scale-transition>
-        <light-details v-if="light" :light="light" :addLED="addLED" :onClose="closeLight">
+        <light-details v-if="lightLoaded" :light="light" :addLED="addLED" :onClose="closeLight">
         </light-details>
       </v-scale-transition>
     </v-flex>
@@ -50,13 +50,23 @@
     name: 'light-manager',
     components: { LightDetails },
     data: () => ({
-      activeID: null
+      activeID: null,
+      lightID: null
     }),
     computed: {
       absoluteStyle () {
-        if (this.light) {
+        if (this.lightLoaded) {
           return { position: 'absolute', left: 0, right: 0 }
         }
+      },
+      light () {
+        if (this.lightID !== null) {
+          return this.$store.getters['Lights/light'](this.lightID)
+        }
+        return {}
+      },
+      lightLoaded () {
+        return (this.lightSelected && this.lightID === this.activeID)
       },
       lightSelected () {
         return (this.activeID !== null)
@@ -65,9 +75,11 @@
         return `${this.lights.length ? 'Select' : 'Add'} a light to ${this.lights.length ? 'continue' : 'start'} the magic.`
       },
       ...mapGetters({
-        light: 'Lights/activeLight',
         lights: 'Lights/lights'
       })
+    },
+    created () {
+      this.$store.subscribe(this.storeUpdated)
     },
     methods: {
       addLight () {
@@ -86,21 +98,39 @@
       closeLight () {
         this.activeID = null
       },
+      lightActivated (light) {
+        this.loadLight(light ? light.id : null)
+      },
       lightTitle (light) {
         if (light && light.hasOwnProperty('id')) {
           return `[#${light.id}] ${light.name}`
         }
         return ''
       },
-      loadLight (activeID) {
+      loadLight (lightID) {
         if (this.light !== null) {
           // make a transition between lights by clearing it, then setting it on next tick
-          this.$store.dispatch('Lights/activateLight')
-          this.$nextTick(() => {
-            this.$store.dispatch('Lights/activateLight', { id: activeID })
-          })
+          this.lightID = null
+          if (lightID !== null) {
+            this.$nextTick(() => {
+              this.lightID = lightID
+              if (this.activeID !== lightID) {
+                this.activeID = lightID
+              }
+            })
+          }
         } else {
-          this.$store.dispatch('Lights/activateLight', { id: activeID })
+          this.lightID = lightID
+        }
+      },
+      selectLight (lightID) {
+        this.$store.dispatch('Lights/activateLight', { id: lightID })
+      },
+      storeUpdated ({ type, payload }, state) {
+        switch (type) {
+          case 'Lights/ACTIVATE_LIGHT':
+            this.lightActivated(payload)
+            break
         }
       }
     }

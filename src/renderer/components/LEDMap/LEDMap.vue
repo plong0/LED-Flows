@@ -87,10 +87,21 @@
         this.lightMap.activateTool(name)
       },
       addLED (light, address, LED) {
-        console.log(`LEDMap addLED @ [${LED.x}, ${LED.y}] => `, light, address)
+        if (LED) {
+          if (light) {
+            this.$store.dispatch('Lights/addLED', { light, address, LED })
+          } else {
+            this.addLight({ x: LED.x, y: LED.y }).then(light => {
+              this.$store.dispatch('Lights/addLED', { light, address, LED })
+            })
+          }
+        }
       },
       addLight (location) {
-        console.log(`LEDMap addLight @ [${location.x}, ${location.y}]`)
+        return this.$store.dispatch('Lights/createLight', { location }).then(light => {
+          this.$store.dispatch('Lights/activateLight', light)
+          return light
+        })
       },
       buttonColor (name) {
         if (this.isActiveTool(name)) {
@@ -104,6 +115,9 @@
       ledsAdded (light, address, LEDs) {
         this.lightMap.ledsAdded(light, address, LEDs)
       },
+      lightActivated (light) {
+        this.lightMap.activateLight(light)
+      },
       refreshCanvasWidth () {
         this.canvasWidth = (this.$refs.canvas && this.$refs.canvas.offsetWidth)
       },
@@ -111,6 +125,9 @@
         switch (type) {
           case 'Lights/ADD_LEDS':
             this.ledsAdded(payload.light, payload.address, payload.LEDs)
+            break
+          case 'Lights/ACTIVATE_LIGHT':
+            this.lightActivated(payload)
             break
         }
       }

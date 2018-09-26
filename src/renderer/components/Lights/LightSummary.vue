@@ -4,7 +4,7 @@
       <v-card-text v-if="!lightLoaded && emptyText" key="emptyText">
         <span class="secondary--text font-weight-regular font-italic">{{emptyText}}</span>
       </v-card-text>
-      <v-card-text v-if="lightLoaded" key="light">
+      <v-card-text v-if="lightLoaded && !lightChanging" key="light">
         <v-layout row wrap justify-space-between>
           <v-flex xs3 sm2 md1>
             <strong>ID: {{light.id}}</strong>
@@ -19,7 +19,7 @@
           </v-flex>
           <v-divider vertical class="hidden-sm-and-down"></v-divider>
           <v-flex xs5 sm12 md2 class="text-xs-right">
-            <strong>[ 100 , 200 ]</strong>
+            <strong>[ {{light.location.x}} , {{light.location.y}} ]</strong>
           </v-flex>
         </v-layout>
       </v-card-text>
@@ -37,6 +37,19 @@
       emptyText: {
         type: String,
         default: 'No light selected'
+      }
+    },
+    data: () => ({
+      lightChanging: false
+    }),
+    watch: {
+      light (light, oldLight) {
+        if (light && oldLight && light !== oldLight) {
+          this.lightChanging = true
+          this.$nextTick(() => {
+            this.lightChanging = false
+          })
+        }
       }
     },
     computed: {

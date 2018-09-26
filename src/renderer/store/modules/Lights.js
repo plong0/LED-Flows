@@ -57,14 +57,52 @@ const actions = {
       if (light !== null) {
         light = getters.light(light.id)
       }
-      commit('ACTIVATE_LIGHT', light)
+      commit('ACTIVATE_LIGHT', light, light === null)
+      return light
     }
   },
-  createLight ({ commit, getters }, { name = 'New Light' } = {}) {
+  addLED ({ dispatch }, { light, LED = { x: 0, y: 0 }, address = -1 }) {
+    return dispatch('addLEDs', { light, address, LEDs: [LED] })
+  },
+  addLEDs ({ commit, getters, dispatch }, { light: { id, ..._light }, LEDs = [], address = -1 }) {
+    if (!LEDs.length) {
+      return
+    }
+    if (isNaN(address) || address === null) {
+      address = -1
+    }
+    const light = getters.light(id)
+    if (light) {
+      if (address < 0) {
+        // push next address if none given
+        address = light.LEDs.length
+      }
+      dispatch('assertAddress', { light, address }).then(() => {
+        commit('ADD_LEDS', { light, LEDs, address })
+      })
+    }
+  },
+  assertAddress ({ commit, getters }, { light: { id, ..._light }, address }) {
+    const light = getters.light(id)
+    if (light && light.LEDs.length <= address) {
+      commit('FILL_ADDRESSES', { light, upTo: address })
+    }
+  },
+  createLight ({ commit, getters }, { name = 'New Light', location = { x: 0, y: 0 } } = {}) {
+    if (!location) {
+      location = {}
+    }
+    if (!location.hasOwnProperty('x')) {
+      location.x = 0
+    }
+    if (!location.hasOwnProperty('y')) {
+      location.y = 0
+    }
     const light = {
       id: getters.nextID,
       name,
-      LEDs: []
+      LEDs: [],
+      location
     }
     commit('ADD_LIGHT', light)
     return light
@@ -92,30 +130,6 @@ const actions = {
     if (light) {
       commit('UPDATE_LIGHT', { light, updates })
       return light
-    }
-  },
-  addLED ({ dispatch }, { light, LED = { x: 0, y: 0 }, address = -1 }) {
-    return dispatch('addLEDs', { light, address, LEDs: [LED] })
-  },
-  addLEDs ({ commit, getters, dispatch }, { light: { id, ..._light }, LEDs = [], address = -1 }) {
-    if (!LEDs.length) {
-      return
-    }
-    const light = getters.light(id)
-    if (light) {
-      if (address < 0) {
-        // push next address if none given
-        address = light.LEDs.length
-      }
-      dispatch('assertAddress', { light, address }).then(() => {
-        commit('ADD_LEDS', { light, LEDs, address })
-      })
-    }
-  },
-  assertAddress ({ commit, getters }, { light: { id, ..._light }, address }) {
-    const light = getters.light(id)
-    if (light && light.LEDs.length <= address) {
-      commit('FILL_ADDRESSES', { light, upTo: address })
     }
   }
 }

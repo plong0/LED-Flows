@@ -25,7 +25,7 @@
         </v-flex>
         <v-divider vertical class="hidden-sm-and-down"></v-divider>
         <v-flex xs12 sm12 md4 class="text-sm-right">
-          <strong>Loc:</strong> [ 100 , 200 ]
+          <strong>Loc:</strong> [ {{light.location.x}} , {{light.location.y}} ]
         </v-flex>
       </v-layout>
     </v-card-title>

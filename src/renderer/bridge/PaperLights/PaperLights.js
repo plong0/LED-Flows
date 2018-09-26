@@ -36,11 +36,11 @@ export default class PaperLights {
   $addLight (location) {
     // TODO: implement default handler (stand-alone model)
   }
-  activateAddress (address) {
-    // TODO: activate an address
+  activateAddress (address = null) {
   }
-  activateLight (light, address = 0) {
-    // TODO: activate a light
+  activateLight (light = null, address = null) {
+    this.$state.activeLight = light
+    this.$state.activeAddress = address
   }
   activateTool (name = 'default') {
     if (this.$tools.hasOwnProperty(name) && this.assertPaper() && !this.$tools[name].isActive()) {
