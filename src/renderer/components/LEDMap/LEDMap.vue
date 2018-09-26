@@ -5,9 +5,10 @@
         <v-btn
           large
           icon
-          color="accent"
+          :color="buttonColor('Tool/AddLed')"
+          @click="activateTool('AddLed')"
         >
-          <v-icon>fa-info</v-icon>
+          <v-icon>far fa-dot-circle</v-icon>
         </v-btn>
       </v-flex>
       <v-flex xs12 sm10 md8>
@@ -17,30 +18,11 @@
       </v-flex>
     </v-layout>
     <v-layout wrap row justify-center>
-      <v-flex xs12 sm1></v-flex>
-      <v-flex xs12 sm10 md8>
-        <v-btn
-          large
-          icon
-          :color="buttonColor('Tool/AddLed')"
-          @click="activateTool('AddLed')"
-        >
-          <v-icon>far fa-dot-circle</v-icon>
-        </v-btn>
-        <v-btn
-          large
-          icon
-          :color="buttonColor('Tool/Edit')"
-        >
-          <v-icon>fa-pencil-alt</v-icon>
-        </v-btn>
-        <v-btn
-          large
-          icon
-          :color="buttonColor('Star')"
-        >
-          <v-icon>fa-star</v-icon>
-        </v-btn>
+      <v-flex xs12 sm2></v-flex>
+      <v-flex xs12 sm9 md7>
+        <size-context :size="size">
+          <light-summary :light="activeLight" :size="size"></light-summary>
+        </size-context>
       </v-flex>
     </v-layout>
   </v-container>
@@ -50,14 +32,32 @@
   import { mapGetters } from 'vuex'
   import PaperLights from '@/bridge/PaperLights/PaperLights'
   import colors from 'vuetify/es5/util/colors'
+  import SizeContext from '@/components/Utils/SizeContext'
+  import LightSummary from '@/components/Lights/LightSummary'
 
   export default {
     name: 'led-map',
+    components: { SizeContext, LightSummary },
     data: () => ({
-      lightMap: null
+      lightMap: null,
+      canvasWidth: 0
     }),
     computed: {
+      size () {
+        if (this.canvasWidth < 500) {
+          return 'xs'
+        } else if (this.canvasWidth < 640) {
+          return 'sm'
+        } else if (this.canvasWidth < 800) {
+          return 'md'
+        } else if (this.canvasWidth < 1100) {
+          return 'lg'
+        } else if (this.canvasWidth >= 1100) {
+          return 'xl'
+        }
+      },
       ...mapGetters({
+        activeLight: 'Lights/activeLight',
         lights: 'Lights/lights'
       })
     },
@@ -65,6 +65,9 @@
       this.$store.subscribe(this.storeUpdated)
     },
     mounted () {
+      window.addEventListener('resize', this.refreshCanvasWidth)
+      this.refreshCanvasWidth()
+      this.$nextTick(this.refreshCanvasWidth)
       this.lightMap = new PaperLights({
         canvas: this.$refs.canvas,
         actions: {
@@ -100,6 +103,9 @@
       },
       ledsAdded (light, address, LEDs) {
         this.lightMap.ledsAdded(light, address, LEDs)
+      },
+      refreshCanvasWidth () {
+        this.canvasWidth = (this.$refs.canvas && this.$refs.canvas.offsetWidth)
       },
       storeUpdated ({ type, payload }, state) {
         switch (type) {
