@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuetify from 'vuetify'
+import Vue2Filters from 'vue2-filters'
 import 'vuetify/dist/vuetify.css'
 import '@fortawesome/fontawesome-free/css/all.css'
 
@@ -10,6 +11,7 @@ import store from './store'
 
 import colors from 'vuetify/es5/util/colors'
 
+Vue.use(Vue2Filters)
 Vue.use(filters)
 Vue.use(Vuetify, {
   iconfont: 'fa',
