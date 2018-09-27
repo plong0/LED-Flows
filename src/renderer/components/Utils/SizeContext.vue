@@ -77,6 +77,8 @@ for $size in $grid-sizes
       .hidden
         &-{$size}
           @media $media_query
+            &.v-divider
+              display: block !important
             &.v-divider--vertical
               display: inline-flex !important
 
@@ -86,6 +88,9 @@ for $size in $grid-sizes
   .hidden-md-and-down,
   .hidden-sm-and-down
     display: none !important;
+    &.v-divider,
+    &.v-divider--vertical
+      display: none !important;
 
 .size-context-sm
   .hidden-sm-only,
@@ -94,6 +99,9 @@ for $size in $grid-sizes
   .hidden-sm-and-down,
   .hidden-sm-and-up
     display: none !important;
+    &.v-divider,
+    &.v-divider--vertical
+      display: none !important;
 
 .size-context-md
   .hidden-md-only,
@@ -102,6 +110,9 @@ for $size in $grid-sizes
   .hidden-md-and-up,
   .hidden-sm-and-up
     display: none !important;
+    &.v-divider,
+    &.v-divider--vertical
+      display: none !important;
 
 .size-context-lg
   .hidden-lg-only,
@@ -110,6 +121,9 @@ for $size in $grid-sizes
   .hidden-md-and-up,
   .hidden-sm-and-up
     display: none !important;
+    &.v-divider,
+    &.v-divider--vertical
+      display: none !important;
 
 .size-context-xl
   .hidden-xl-only,
@@ -117,4 +131,7 @@ for $size in $grid-sizes
   .hidden-md-and-up,
   .hidden-sm-and-up
     display: none !important;
+    &.v-divider,
+    &.v-divider--vertical
+      display: none !important;
 </style>
