@@ -79,7 +79,8 @@
         return this.$store.getters['Lights/ledCount'](this.light.id)
       },
       location () {
-        return this.$store.getters['Lights/location'](this.light.id)
+        const bounds = this.$store.getters['Lights/bounds'](this.light.id)
+        return bounds.center
       }
     }
   }

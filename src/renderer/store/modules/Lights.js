@@ -50,6 +50,48 @@ const getters = {
     }
     return '?'
   },
+  bounds: (state, getters) => (id) => {
+    const light = getters.light(id)
+    let bounds = {
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      center: {
+        x: 0,
+        y: 0
+      },
+      width: 0,
+      height: 0
+    }
+    if (light && light.LEDs.length) {
+      const leds = light.LEDs.reduce((result, LEDs) => {
+        const address = LEDs.reduce((result, LED) => {
+          if (isNaN(result.minX) || LED.x < result.minX) result.minX = LED.x
+          if (isNaN(result.maxX) || LED.x > result.maxX) result.maxX = LED.x
+          if (isNaN(result.minY) || LED.y < result.minY) result.minY = LED.y
+          if (isNaN(result.maxY) || LED.y > result.maxY) result.maxY = LED.y
+          return result
+        }, { minX: NaN, maxX: NaN, minY: NaN, maxY: NaN })
+        if (isNaN(result.minX) || address.minX < result.minX) result.minX = address.minX
+        if (isNaN(result.maxX) || address.maxX > result.maxX) result.maxX = address.maxX
+        if (isNaN(result.minY) || address.minY < result.minY) result.minY = address.minY
+        if (isNaN(result.maxY) || address.maxY > result.maxY) result.maxY = address.maxY
+        return result
+      }, { minX: NaN, maxX: NaN, minY: NaN, maxY: NaN })
+      bounds.left = leds.minX
+      bounds.right = leds.maxX
+      bounds.top = leds.minY
+      bounds.bottom = leds.maxY
+      bounds.center = {
+        x: (leds.minX + leds.maxX) / 2.0,
+        y: (leds.minY + leds.maxY) / 2.0
+      }
+      bounds.width = (leds.maxX - leds.minX)
+      bounds.height = (leds.maxY - leds.minY)
+    }
+    return bounds
+  },
   ledCount: (state, getters) => (id) => {
     const light = getters.light(id)
     if (light && light.LEDs.length) {
@@ -63,29 +105,6 @@ const getters = {
   },
   light: (state) => (id) => state.lights[id],
   lights: (state) => Object.keys(state.lights).sort((a, b) => (parseInt(a) - parseInt(b))).map(id => state.lights[id]),
-  location: (state, getters) => (id) => {
-    const light = getters.light(id)
-    if (light && light.LEDs.length) {
-      const total = light.LEDs.reduce((result, LEDs) => {
-        const total = LEDs.reduce((result, LED) => {
-          result.x += LED.x
-          result.y += LED.y
-          result.count += 1
-          return result
-        }, { x: 0, y: 0, count: 0 })
-        result.x += total.x
-        result.y += total.y
-        result.count += total.count
-        return result
-      }, { x: 0, y: 0, count: 0 })
-      const divisor = total.count || 1.0
-      return {
-        x: total.x / divisor,
-        y: total.y / divisor
-      }
-    }
-    return { x: 0, y: 0 }
-  },
   nextID: (state) => {
     const keys = Object.keys(state.lights).map(id => parseInt(id))
     return (keys.length ? Math.max(...keys) + 1 : 0)
