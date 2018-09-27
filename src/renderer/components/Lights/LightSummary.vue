@@ -20,7 +20,7 @@
           </v-flex>
           <v-divider vertical></v-divider>
           <v-flex xs5 sm3 md2 class="text-xs-right">
-            ( {{light.location.x | toFixed(0)}} , {{light.location.y | toFixed(0)}} )
+            ( {{location.x | toFixed(0)}} , {{location.y | toFixed(0)}} )
           </v-flex>
         </v-layout>
       </v-card-text>
@@ -68,7 +68,14 @@
         return (this.light && this.light.hasOwnProperty('id'))
       },
       ledCount () {
-        return this.$store.getters['Lights/ledCount'](this.light.id)
+        if (this.lightLoaded) {
+          return this.$store.getters['Lights/ledCount'](this.light.id)
+        }
+      },
+      location () {
+        if (this.lightLoaded) {
+          return this.$store.getters['Lights/location'](this.light.id)
+        }
       }
     }
   }

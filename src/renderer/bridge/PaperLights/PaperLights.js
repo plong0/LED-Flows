@@ -34,7 +34,7 @@ export default class PaperLights {
   $addLED (light, address, LED) {
     // TODO: implement default handler (stand-alone model)
   }
-  $addLight (location) {
+  $addLight () {
     // TODO: implement default handler (stand-alone model)
   }
   activateAddress (address = null) {
@@ -55,29 +55,33 @@ export default class PaperLights {
   addLED (x, y) {
     if (this.assertActiveLightAddress()) {
       // console.log(`PaperLights addLED @ [ ${x}, ${y} ]`, this.$paper)
-      this.$actions.addLED(this.activeLight, this.activeAddress, { x, y })
+      return this.$actions.addLED(this.activeLight, this.activeAddress, { x, y })
     }
   }
-  addLight (x, y) {
-    this.$actions.addLight({ x, y })
+  addLight () {
+    return this.$actions.addLight()
   }
   assertActiveLight () {
+    return true
+    /** TODO: sort out assertActiveLight promise chain (for now, the external $actions.addLED does it)
     // make sure a light is active
     if (!this.activeLight) {
-      // TODO: create a new light
-      return true
+      return this.addLight()
     }
     return this.activeLight
+    */
   }
   assertActiveLightAddress () {
+    return true
+    /** TODO: sort out assertActiveLightAddress promise chain
     // make sure a light and address are active
     if (this.assertActiveLight()) {
       if (!this.activeAddress) {
-        // TODO: create a new light address
         return true
       }
     }
     return (this.activeLight && this.activeAddress)
+    */
   }
   assertPaper () {
     if (this.$paper) {

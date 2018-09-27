@@ -63,6 +63,29 @@ const getters = {
   },
   light: (state) => (id) => state.lights[id],
   lights: (state) => Object.keys(state.lights).sort((a, b) => (parseInt(a) - parseInt(b))).map(id => state.lights[id]),
+  location: (state, getters) => (id) => {
+    const light = getters.light(id)
+    if (light && light.LEDs.length) {
+      const total = light.LEDs.reduce((result, LEDs) => {
+        const total = LEDs.reduce((result, LED) => {
+          result.x += LED.x
+          result.y += LED.y
+          result.count += 1
+          return result
+        }, { x: 0, y: 0, count: 0 })
+        result.x += total.x
+        result.y += total.y
+        result.count += total.count
+        return result
+      }, { x: 0, y: 0, count: 0 })
+      const divisor = total.count || 1.0
+      return {
+        x: total.x / divisor,
+        y: total.y / divisor
+      }
+    }
+    return { x: 0, y: 0 }
+  },
   nextID: (state) => {
     const keys = Object.keys(state.lights).map(id => parseInt(id))
     return (keys.length ? Math.max(...keys) + 1 : 0)
@@ -136,22 +159,12 @@ const actions = {
       commit('FILL_ADDRESSES', { light, upTo: address })
     }
   },
-  createLight ({ commit, getters }, { name = 'New Light', location = { x: 0, y: 0 }, addressOffset = null } = {}) {
-    if (!location) {
-      location = {}
-    }
-    if (!location.hasOwnProperty('x')) {
-      location.x = 0
-    }
-    if (!location.hasOwnProperty('y')) {
-      location.y = 0
-    }
+  createLight ({ commit, getters }, { name = 'New Light', addressOffset = null } = {}) {
     const light = {
       id: getters.nextID,
       name,
       addressOffset,
-      LEDs: [],
-      location
+      LEDs: []
     }
     commit('ADD_LIGHT', light)
     return light

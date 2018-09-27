@@ -89,14 +89,14 @@
           if (light) {
             this.$store.dispatch('Lights/addLED', { light, address, LED })
           } else {
-            this.addLight({ x: LED.x, y: LED.y }).then(light => {
+            this.addLight().then(light => {
               this.$store.dispatch('Lights/addLED', { light, address, LED })
             })
           }
         }
       },
-      addLight (location) {
-        return this.$store.dispatch('Lights/createLight', { location }).then(light => {
+      addLight () {
+        return this.$store.dispatch('Lights/createLight').then(light => {
           this.$store.dispatch('Lights/activateLight', light)
           return light
         })
