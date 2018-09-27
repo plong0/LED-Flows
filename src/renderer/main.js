@@ -4,11 +4,13 @@ import 'vuetify/dist/vuetify.css'
 import '@fortawesome/fontawesome-free/css/all.css'
 
 import App from './App'
+import filters from './filters'
 import router from './router'
 import store from './store'
 
 import colors from 'vuetify/es5/util/colors'
 
+Vue.use(filters)
 Vue.use(Vuetify, {
   iconfont: 'fa',
   theme: {
