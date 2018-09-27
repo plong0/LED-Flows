@@ -12,8 +12,9 @@
         </v-btn>
       </v-flex>
       <v-flex xs12 sm10 md8>
-        <v-responsive :aspect-ratio="4/3">
-          <canvas ref="canvas"></canvas>
+        <v-responsive :aspect-ratio="4/3" class="canvas-wrapper">
+          <div ref="canvasDummy" class="canvas-dummy"></div>
+          <canvas ref="canvas" width="1280" height="960"></canvas>
         </v-responsive>
       </v-flex>
     </v-layout>
@@ -65,9 +66,9 @@
       this.$store.subscribe(this.storeUpdated)
     },
     mounted () {
-      window.addEventListener('resize', this.refreshCanvasWidth)
-      this.refreshCanvasWidth()
-      this.$nextTick(this.refreshCanvasWidth)
+      window.addEventListener('resize', this.refreshCanvasSize)
+      this.refreshCanvasSize()
+      this.$nextTick(this.refreshCanvasSize)
       this.lightMap = new PaperLights({
         canvas: this.$refs.canvas,
         actions: {
@@ -75,7 +76,6 @@
           addLight: this.addLight
         },
         theme: {
-          'LED-radius': 25,
           'LED-style-fillColor': this.$vuetify.theme.secondary,
           'LED-style-strokeColor': colors.lime.accent2
         },
@@ -118,8 +118,15 @@
       lightActivated (light) {
         this.lightMap.activateLight(light)
       },
-      refreshCanvasWidth () {
-        this.canvasWidth = (this.$refs.canvas && this.$refs.canvas.offsetWidth)
+      refreshCanvasSize () {
+        if (this.$refs.canvasDummy) {
+          const width = this.$refs.canvasDummy.offsetWidth
+          const height = this.$refs.canvasDummy.offsetHeight
+          if (this.lightMap) {
+            this.lightMap.resizeCanvas(width, height)
+          }
+          this.canvasWidth = width
+        }
       },
       storeUpdated ({ type, payload }, state) {
         switch (type) {
@@ -136,10 +143,22 @@
 </script>
 
 <style scoped>
-  canvas {
+  .canvas-wrapper {
+    position: relative;
     border: 1px solid var(--theme-primary);
+  }
+  .canvas-dummy {
+    position: relative;
+    z-index: 0;
     width: 100%;
     height: 100%;
+    visibility: hidden;
+  }
+  canvas {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
     display: block;
   }
 </style>

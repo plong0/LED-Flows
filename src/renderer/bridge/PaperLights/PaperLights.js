@@ -9,6 +9,7 @@ export default class PaperLights {
     if (canvas) {
       this.$paper = new paper.Project(canvas)
     }
+    this.$scaling = { x: 1.0, y: 1.0 }
     this.$PLT = new PaperLightsTheme(theme)
     this.$actions = {
       ...{
@@ -53,6 +54,7 @@ export default class PaperLights {
   }
   addLED (x, y) {
     if (this.assertActiveLightAddress()) {
+      // console.log(`PaperLights addLED @ [ ${x}, ${y} ]`, this.$paper)
       this.$actions.addLED(this.activeLight, this.activeAddress, { x, y })
     }
   }
@@ -95,6 +97,24 @@ export default class PaperLights {
       })
     }
     return this.$lights[light.id]
+  }
+  resizeCanvas (width, height) {
+    if (this.$paper && this.$paper.view) {
+      this.$paper.view.element.style.width = width + 'px'
+      this.$paper.view.element.style.height = height + 'px'
+      this.$scaling.x = (width / this.$paper.view.viewSize.width)
+      this.$scaling.y = (height / this.$paper.view.viewSize.height)
+    }
+  }
+  normalizePoint (point) {
+    if (this.$paper && this.$paper.view) {
+      const scaledPoint = {
+        x: (point.x / this.$scaling.x),
+        y: (point.y / this.$scaling.y)
+      }
+      return scaledPoint
+    }
+    return point
   }
   lightsAdded (lights) {
     for (const light of lights) {

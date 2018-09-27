@@ -2,7 +2,7 @@ export default class PaperLightsTheme {
   constructor (custom = {}) {
     this.$custom = custom
     this.$defaults = {
-      'LED-radius': 10,
+      'LED-radius': 5,
       'LED-style-fillColor': 'blue',
       'LED-style-strokeColor': 'white',
       'LED-style-strokeWidth': 1.0
