@@ -16,23 +16,28 @@
     </v-card-title>
     <v-card-title>
       <v-layout row wrap justify-space-between>
-        <v-flex xs12 sm5 md2>
+        <v-flex xs5 md2>
           <strong>ID:</strong> {{light.id}}
         </v-flex>
-        <v-divider vertical class="hidden-xs-only"></v-divider>
-        <v-flex xs12 sm6 md5 class="text-sm-right text-md-center">
-          <strong>Address:</strong> 64
+        <v-divider vertical></v-divider>
+        <v-flex xs5 md3 class="text-xs-right text-md-center">
+          [ {{firstAddress}} - {{lastAddress}} ]
         </v-flex>
         <v-divider vertical class="hidden-sm-and-down"></v-divider>
-        <v-flex xs12 sm12 md4 class="text-sm-right">
-          <strong>Loc:</strong> [ {{light.location.x}} , {{light.location.y}} ]
+        <v-divider class="flex xs12 hidden-md-and-up"></v-divider>
+        <v-flex xs5 md3 class="text-md-center">
+          {{ledCount}} {{ledCount | pluralize('LED')}}
+        </v-flex>
+        <v-divider vertical></v-divider>
+        <v-flex xs5 md3 class="text-xs-right">
+          ( {{light.location.x | toFixed(0)}} , {{light.location.y | toFixed(0)}} )
         </v-flex>
       </v-layout>
     </v-card-title>
     <v-divider></v-divider>
     <v-card-text>
       <h4>LEDs</h4>
-      <light-leds :light="light" :addLED="addLED"></light-leds>
+      <light-leds :light="light" :addLED="addLED" :address-offset="addressOffset"></light-leds>
     </v-card-text>
   </v-card>
 </template>
@@ -55,6 +60,23 @@
       },
       onClose: {
         type: Function
+      }
+    },
+    computed: {
+      addressOffset () {
+        if (typeof this.firstAddress === 'number') {
+          return this.firstAddress
+        }
+        return 0
+      },
+      firstAddress () {
+        return this.$store.getters['Lights/addressFirst'](this.light.id)
+      },
+      lastAddress () {
+        return this.$store.getters['Lights/addressLast'](this.light.id)
+      },
+      ledCount () {
+        return this.$store.getters['Lights/ledCount'](this.light.id)
       }
     }
   }

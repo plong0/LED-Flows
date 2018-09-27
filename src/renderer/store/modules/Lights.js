@@ -1,20 +1,68 @@
 import Vue from 'vue'
 
 const state = {
-  activeLight: null,
+  active: {
+    light: null
+  },
   lights: {}
 }
 
 const getters = {
-  activeLight: (state) => state.activeLight,
+  activeLight: (state) => state.active.light,
+  addressCount: (state, getters) => (id) => {
+    const light = getters.light(id)
+    if (light) {
+      return light.LEDs.length
+    }
+    return 0
+  },
+  addressFirst: (state, getters) => (id) => {
+    const light = getters.light(id)
+    if (light && light.LEDs.length) {
+      if (light.addressOffset === null) {
+        let offset = 0
+        const lights = getters.lights
+        for (let i = 0; i < lights.length; i++) {
+          if (lights[i]) {
+            if (lights[i].id === id) {
+              break
+            } else {
+              offset += getters.addressCount(lights[i].id)
+            }
+          }
+        }
+        return offset
+      }
+      return light.addressOffset
+    }
+    return '?'
+  },
+  addressLast: (state, getters) => (id) => {
+    const light = getters.light(id)
+    if (light && light.LEDs.length) {
+      const firstAddress = getters.addressFirst(id)
+      const addressOffset = getters.addressCount(id) - (light.LEDs.length ? 1 : 0)
+      if (!isNaN(firstAddress)) {
+        return firstAddress + addressOffset
+      } else {
+        return `(+${addressOffset})`
+      }
+    }
+    return '?'
+  },
+  ledCount: (state, getters) => (id) => {
+    const light = getters.light(id)
+    if (light && light.LEDs.length) {
+      let count = 0
+      for (let address of light.LEDs) {
+        count += address.length
+      }
+      return count
+    }
+    return 0
+  },
   light: (state) => (id) => state.lights[id],
   lights: (state) => Object.keys(state.lights).sort((a, b) => (parseInt(a) - parseInt(b))).map(id => state.lights[id]),
-  lightAddress: (state, getters) => (id, address) => {
-    const light = getters.light(id)
-    if (light && address >= 0 && address < light.LEDs.length) {
-      return light.LEDs[address]
-    }
-  },
   nextID: (state) => {
     const keys = Object.keys(state.lights).map(id => parseInt(id))
     return (keys.length ? Math.max(...keys) + 1 : 0)
@@ -23,7 +71,7 @@ const getters = {
 
 const mutations = {
   ACTIVATE_LIGHT (state, light) {
-    Vue.set(state, 'activeLight', light)
+    Vue.set(state.active, 'light', light)
   },
   ADD_LIGHT (state, light) {
     Vue.set(state.lights, light.id, light)
@@ -88,7 +136,7 @@ const actions = {
       commit('FILL_ADDRESSES', { light, upTo: address })
     }
   },
-  createLight ({ commit, getters }, { name = 'New Light', location = { x: 0, y: 0 } } = {}) {
+  createLight ({ commit, getters }, { name = 'New Light', location = { x: 0, y: 0 }, addressOffset = null } = {}) {
     if (!location) {
       location = {}
     }
@@ -101,6 +149,7 @@ const actions = {
     const light = {
       id: getters.nextID,
       name,
+      addressOffset,
       LEDs: [],
       location
     }

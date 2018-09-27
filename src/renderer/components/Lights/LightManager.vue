@@ -103,7 +103,9 @@
       },
       lightTitle (light) {
         if (light && light.hasOwnProperty('id')) {
-          return `[#${light.id}] ${light.name}`
+          const firstAddress = this.$store.getters['Lights/addressFirst'](light.id)
+          const lastAddress = this.$store.getters['Lights/addressLast'](light.id)
+          return `[ ${firstAddress} - ${lastAddress} ] - ${light.name}`
         }
         return ''
       },

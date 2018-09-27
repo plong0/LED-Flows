@@ -3,7 +3,6 @@
     <v-layout wrap row justify-center>
       <v-flex xs12 sm1>
         <v-btn
-          large
           icon
           :color="buttonColor('Tool/AddLed')"
           @click="activateTool('AddLed')"
@@ -22,7 +21,7 @@
       <v-flex xs12 sm2></v-flex>
       <v-flex xs12 sm9 md7>
         <size-context :size="size">
-          <light-summary :light="activeLight" :size="size"></light-summary>
+          <light-summary :light="activeLight" empty-text="It's so beautiful!"></light-summary>
         </size-context>
       </v-flex>
     </v-layout>
@@ -32,7 +31,6 @@
 <script>
   import { mapGetters } from 'vuex'
   import PaperLights from '@/bridge/PaperLights/PaperLights'
-  import colors from 'vuetify/es5/util/colors'
   import SizeContext from '@/components/Utils/SizeContext'
   import LightSummary from '@/components/Lights/LightSummary'
 
@@ -45,7 +43,7 @@
     }),
     computed: {
       size () {
-        if (this.canvasWidth < 500) {
+        if (this.canvasWidth < 450) {
           return 'xs'
         } else if (this.canvasWidth < 640) {
           return 'sm'
@@ -77,7 +75,7 @@
         },
         theme: {
           'LED-style-fillColor': this.$vuetify.theme.secondary,
-          'LED-style-strokeColor': colors.lime.accent2
+          'LED-style-strokeColor': ''
         },
         lights: this.lights
       })

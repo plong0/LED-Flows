@@ -20,7 +20,7 @@
                   :value="LEDs.length > 1"
                 >
                   <span slot="badge">{{LEDs.length}}</span>
-                  {{address}}
+                  {{offsetAddress(address)}}
                 </v-badge>
               </v-btn>
             </v-slide-y-reverse-transition>
@@ -81,21 +81,19 @@
       addLED: {
         type: Function
       },
+      addressOffset: {
+        type: Number,
+        default: 0
+      },
       light: {
         type: Object,
         required: true,
-        validator: (light) => {
+        validator (light) {
           return (light && light.hasOwnProperty('id') && Array.isArray(light.LEDs))
         }
       }
     },
     methods: {
-      laKey (light, address) {
-        return `${light.id}.${address}`
-      },
-      laiKey (light, address, index) {
-        return `${light.id}.${address}.${index}`
-      },
       extraLedsStyle (LEDs) {
         const rows = 6
         const columns = 3
@@ -117,6 +115,15 @@
         }
 
         return style
+      },
+      laKey (light, address) {
+        return `${light.id}.${address}`
+      },
+      laiKey (light, address, index) {
+        return `${light.id}.${address}.${index}`
+      },
+      offsetAddress (value) {
+        return (value + this.addressOffset)
       }
     }
   }

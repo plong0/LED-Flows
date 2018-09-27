@@ -1,25 +1,26 @@
 <template>
   <v-card flat ripple>
     <v-slide-x-transition leave-absolute>
-      <v-card-text v-if="!lightLoaded && emptyText" key="emptyText">
+      <v-card-text class="text-xs-center" v-if="!lightLoaded && emptyText" key="emptyText">
         <span class="secondary--text font-weight-regular font-italic">{{emptyText}}</span>
       </v-card-text>
       <v-card-text v-if="lightLoaded && !lightChanging" key="light">
         <v-layout row wrap justify-space-between>
-          <v-flex xs3 sm2 md1>
-            <strong>ID: {{light.id}}</strong>
-          </v-flex>
-          <v-divider vertical class="hidden-xs-only"></v-divider>
-          <v-flex xs8 sm6 md5 class="text-xs-right text-sm-center">
+          <v-flex xs5 sm4 md5>
             <strong>{{light.name}}</strong>
           </v-flex>
-          <v-divider vertical class="hidden-xs-only"></v-divider>
-          <v-flex xs5 sm3 class="text-xs-left text-sm-right text-md-center">
-            <strong>Address:</strong> 64
+          <v-divider vertical></v-divider>
+          <v-flex xs5 sm2 class="text-xs-right text-sm-center">
+            {{ledCount}} {{ledCount | pluralize('LED')}}
           </v-flex>
-          <v-divider vertical class="hidden-sm-and-down"></v-divider>
-          <v-flex xs5 sm12 md2 class="text-xs-right">
-            <strong>[ {{light.location.x}} , {{light.location.y}} ]</strong>
+          <v-divider vertical class="hidden-xs-only"></v-divider>
+          <v-divider class="flex xs12 hidden-sm-and-up"></v-divider>
+          <v-flex xs5 sm2 class="text-xs-left text-sm-center">
+            [ {{firstAddress}} - {{lastAddress}} ]
+          </v-flex>
+          <v-divider vertical></v-divider>
+          <v-flex xs5 sm3 md2 class="text-xs-right">
+            ( {{light.location.x | toFixed(0)}} , {{light.location.y | toFixed(0)}} )
           </v-flex>
         </v-layout>
       </v-card-text>
@@ -36,7 +37,7 @@
       },
       emptyText: {
         type: String,
-        default: 'No light selected'
+        default: ''
       }
     },
     data: () => ({
@@ -53,8 +54,21 @@
       }
     },
     computed: {
+      firstAddress () {
+        if (this.lightLoaded) {
+          return this.$store.getters['Lights/addressFirst'](this.light.id)
+        }
+      },
+      lastAddress () {
+        if (this.lightLoaded) {
+          return this.$store.getters['Lights/addressLast'](this.light.id)
+        }
+      },
       lightLoaded () {
         return (this.light && this.light.hasOwnProperty('id'))
+      },
+      ledCount () {
+        return this.$store.getters['Lights/ledCount'](this.light.id)
       }
     }
   }
