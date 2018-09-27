@@ -16,28 +16,25 @@
     </v-card-title>
     <v-card-title>
       <v-layout row wrap justify-space-between>
-        <v-flex xs5 md2>
-          <strong>ID:</strong> {{light.id}}
-        </v-flex>
-        <v-divider vertical></v-divider>
-        <v-flex xs5 md3 class="text-xs-right text-md-center">
+        <v-flex xs12 lg5>
           [ {{firstAddress}} - {{lastAddress}} ]
+          <span class="caption font-weight-light font-italic
+">( {{addressCount}} address{{addressCount | pluralize('address', 'es')}} )</span>
         </v-flex>
-        <v-divider vertical class="hidden-sm-and-down"></v-divider>
-        <v-divider class="flex xs12 hidden-md-and-up"></v-divider>
-        <v-flex xs5 md3 class="text-md-center">
+        <v-divider vertical class="hidden-md-and-down"></v-divider>
+        <v-flex xs4 lg2 class="text-lg-center">
           {{ledCount}} {{ledCount | pluralize('LED')}}
         </v-flex>
-        <v-divider vertical></v-divider>
-        <v-flex xs5 md3 class="text-xs-right">
-          ( {{location.x | toFixed(0)}} , {{location.y | toFixed(0)}} )
+        <v-divider vertical class="hidden-md-and-down"></v-divider>
+        <v-flex xs7 lg4 class="text-xs-right">
+          Center: ( {{location.x | toFixed(0)}} , {{location.y | toFixed(0)}} )
         </v-flex>
       </v-layout>
     </v-card-title>
     <v-divider></v-divider>
     <v-card-text>
       <h4>LEDs</h4>
-      <light-leds :light="light" :addLED="addLED" :address-offset="addressOffset"></light-leds>
+      <light-leds :light="light" :addLED="addLED" :address-offset="addressOffset" :max-visible="maxVisibleLEDs"></light-leds>
     </v-card-text>
   </v-card>
 </template>
@@ -63,6 +60,9 @@
       }
     },
     computed: {
+      addressCount () {
+        return this.$store.getters['Lights/addressCount'](this.light.id)
+      },
       addressOffset () {
         if (typeof this.firstAddress === 'number') {
           return this.firstAddress
@@ -81,6 +81,12 @@
       location () {
         const bounds = this.$store.getters['Lights/bounds'](this.light.id)
         return bounds.center
+      },
+      maxVisibleLEDs () {
+        if (this.$vuetify.breakpoint.lgAndUp) {
+          return 36
+        }
+        return 24
       }
     }
   }

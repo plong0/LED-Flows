@@ -93,7 +93,7 @@
           - auto-set compass to vector of last 2 addresses in Light
             - (multi-LED addresses should use an average of all their locations)
         */
-        this.$store.dispatch('Lights/addLED', { light, address })
+        return this.$store.dispatch('Lights/addLED', { light, address })
       },
       closeLight () {
         this.activeID = null
@@ -105,7 +105,7 @@
         if (light && light.hasOwnProperty('id')) {
           const firstAddress = this.$store.getters['Lights/addressFirst'](light.id)
           const lastAddress = this.$store.getters['Lights/addressLast'](light.id)
-          return `[ ${firstAddress} - ${lastAddress} ] - ${light.name}`
+          return `[ ${firstAddress} - ${lastAddress} ] ~ ${light.name}`
         }
         return ''
       },
