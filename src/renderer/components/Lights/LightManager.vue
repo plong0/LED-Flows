@@ -38,8 +38,8 @@
         </v-layout>
       </v-slide-y-transition>
       <v-scale-transition>
-        <light-details v-if="lightLoaded" :light="light" :addLED="addLED" :onClose="closeLight">
-        </light-details>
+        <light-card v-if="lightLoaded" :light="light" :addLED="addLED" :onClose="closeLight">
+        </light-card>
       </v-scale-transition>
     </v-flex>
   </v-layout>
@@ -47,11 +47,11 @@
 
 <script>
   import { mapGetters } from 'vuex'
-  import LightDetails from './LightDetails'
+  import LightCard from './LightCard'
 
   export default {
     name: 'light-manager',
-    components: { LightDetails },
+    components: { LightCard },
     data: () => ({
       activeID: null,
       lightID: null

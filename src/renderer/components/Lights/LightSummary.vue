@@ -6,30 +6,22 @@
       </v-card-text>
       <v-card-text v-if="lightLoaded && !lightChanging" key="light">
         <v-layout row wrap justify-space-between>
-          <v-flex xs5 sm4 md5>
-            <strong>{{light.name}}</strong>
-          </v-flex>
-          <v-divider vertical></v-divider>
-          <v-flex xs5 sm2 class="text-xs-right text-sm-center">
-            {{ledCount}} {{ledCount | pluralize('LED')}}
-          </v-flex>
-          <v-divider vertical class="hidden-xs-only"></v-divider>
-          <v-divider class="flex xs12 hidden-sm-and-up"></v-divider>
-          <v-flex xs5 sm2 class="text-xs-left text-sm-center">
-            [ {{firstAddress}} - {{lastAddress}} ]
-          </v-flex>
-          <v-divider vertical></v-divider>
-          <v-flex xs5 sm3 md2 class="text-xs-right">
-            ( {{location.x | toFixed(0)}} , {{location.y | toFixed(0)}} )
+          <v-flex xs12 class="subheading mb-1">
+            {{light.name}}
           </v-flex>
         </v-layout>
+        <v-divider class="mb-1"></v-divider>
+        <light-details :light="light"></light-details>
       </v-card-text>
     </v-slide-x-transition>
   </v-card>
 </template>
 
 <script>
+  import LightDetails from './LightDetails'
+
   export default {
+    components: { LightDetails },
     props: {
       light: {
         type: Object,
@@ -54,29 +46,8 @@
       }
     },
     computed: {
-      firstAddress () {
-        if (this.lightLoaded) {
-          return this.$store.getters['Lights/addressFirst'](this.light.id)
-        }
-      },
-      lastAddress () {
-        if (this.lightLoaded) {
-          return this.$store.getters['Lights/addressLast'](this.light.id)
-        }
-      },
       lightLoaded () {
         return (this.light && this.light.hasOwnProperty('id'))
-      },
-      ledCount () {
-        if (this.lightLoaded) {
-          return this.$store.getters['Lights/ledCount'](this.light.id)
-        }
-      },
-      location () {
-        if (this.lightLoaded) {
-          const bounds = this.$store.getters['Lights/bounds'](this.light.id)
-          return bounds.center
-        }
       }
     }
   }

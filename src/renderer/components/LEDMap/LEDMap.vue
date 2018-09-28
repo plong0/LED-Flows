@@ -43,15 +43,15 @@
     }),
     computed: {
       size () {
-        if (this.canvasWidth < 450) {
+        if (this.canvasWidth < 300) {
           return 'xs'
-        } else if (this.canvasWidth < 640) {
+        } else if (this.canvasWidth < 360) {
           return 'sm'
-        } else if (this.canvasWidth < 800) {
+        } else if (this.canvasWidth < 600) {
           return 'md'
-        } else if (this.canvasWidth < 1100) {
+        } else if (this.canvasWidth < 900) {
           return 'lg'
-        } else if (this.canvasWidth >= 1100) {
+        } else if (this.canvasWidth >= 900) {
           return 'xl'
         }
       },
