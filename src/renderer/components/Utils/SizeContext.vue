@@ -14,7 +14,7 @@
     computed: {
       className () {
         if (['xs', 'sm', 'md', 'lg', 'xl'].includes(this.size)) {
-          return `size-context-${this.size}`
+          return `size-context size-context-${this.size}`
         }
       }
     }
@@ -42,11 +42,51 @@ $display-breakpoints := {
   lg-and-up: "only screen and (min-width: %s)" % $grid-breakpoints.lg
   xl-only: "only screen and (min-width: %s)" % $grid-breakpoints.xl
 }
-
-$grid-sizes := xs sm md lg xl
+$size-context-prefix = '.size-context.size-context-'
+$grid-contexts := {
+  xs: $size-context-prefix + join(','+$size-context-prefix, xs sm md lg xl)
+  sm: $size-context-prefix + join(','+$size-context-prefix, sm md lg xl)
+  md: $size-context-prefix + join(','+$size-context-prefix, md lg xl)
+  lg: $size-context-prefix + join(','+$size-context-prefix, lg xl)
+  xl: $size-context-prefix + 'xl'
+}
 $grid-columns := 12
-for $size in $grid-sizes
-  .size-context-{$size}
+$grid-range := (1..$grid-columns)
+$grid-range-0 := (0..$grid-columns)
+.size-context
+  for $size, $width in $grid-breakpoints
+    @media all and (min-width: $width)
+      $flex-prefix = '.flex.'+$size
+      $flex-order-prefix = '.flex.order-'+$size
+      $flex-offset-prefix = '.flex.offset-'+$size
+
+      {$flex-prefix + join(','+$flex-prefix, $grid-range)}
+        flex-basis: auto
+        flex-grow: 1
+        max-width: 100%
+
+      {$flex-order-prefix + join(','+$flex-order-prefix, $grid-range)}
+        order: initial
+
+      {$flex-offset-prefix + join(','+$flex-offset-prefix, $grid-range-0)}
+        // Offsets can only ever work in row layouts
+        margin-left: initial
+
+for $size, $context-selector in $grid-contexts
+  .size-context
+    .text-{$size}-left
+      text-align: inherit !important
+
+    .text-{$size}-center
+      text-align: inherit !important
+
+    .text-{$size}-right
+      text-align: inherit !important
+
+    .text-{$size}-justify
+      text-align: inherit !important
+
+  {$context-selector}
     for n in (1..$grid-columns)
       .flex.{$size}{n}
         flex-basis: (n / $grid-columns * 100)%
@@ -73,14 +113,17 @@ for $size in $grid-sizes
     .text-{$size}-justify
       text-align: justify !important
 
-    for $size, $media_query in $display-breakpoints
+
+.size-context
+  for $size, $media_query in $display-breakpoints
+    @media $media_query
       .hidden
         &-{$size}
-          @media $media_query
-            &.v-divider
-              display: block !important
-            &.v-divider--vertical
-              display: inline-flex !important
+          div&,
+          &.v-divider
+            display: block !important
+          &.v-divider--vertical
+            display: inline-flex !important
 
 .size-context-xs
   .hidden-xs-only,
@@ -88,6 +131,7 @@ for $size in $grid-sizes
   .hidden-md-and-down,
   .hidden-sm-and-down
     display: none !important;
+    div&,
     &.v-divider,
     &.v-divider--vertical
       display: none !important;
@@ -99,6 +143,7 @@ for $size in $grid-sizes
   .hidden-sm-and-down,
   .hidden-sm-and-up
     display: none !important;
+    div&,
     &.v-divider,
     &.v-divider--vertical
       display: none !important;
@@ -110,6 +155,7 @@ for $size in $grid-sizes
   .hidden-md-and-up,
   .hidden-sm-and-up
     display: none !important;
+    div&,
     &.v-divider,
     &.v-divider--vertical
       display: none !important;
@@ -121,6 +167,7 @@ for $size in $grid-sizes
   .hidden-md-and-up,
   .hidden-sm-and-up
     display: none !important;
+    div&,
     &.v-divider,
     &.v-divider--vertical
       display: none !important;
@@ -131,6 +178,7 @@ for $size in $grid-sizes
   .hidden-md-and-up,
   .hidden-sm-and-up
     display: none !important;
+    div&,
     &.v-divider,
     &.v-divider--vertical
       display: none !important;
