@@ -1,7 +1,8 @@
 <template>
   <v-layout column justify-start>
     <v-flex>
-      <h2>Currents</h2>
+      <h5 class="headline mb-1">Currents</h5>
+      <v-divider></v-divider>
     </v-flex>
   </v-layout>
 </template>

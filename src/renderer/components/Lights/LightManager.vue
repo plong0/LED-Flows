@@ -1,7 +1,7 @@
 <template>
   <v-layout column>
     <v-flex class="mb-3">
-      <h2 class="mb-1">Lights</h2>
+      <h5 class="headline mb-1">Lights</h5>
       <v-divider></v-divider>
     </v-flex>
     <v-flex>
@@ -20,7 +20,10 @@
     </v-flex>
     <v-flex :style="{ position: 'relative' }">
       <v-slide-y-transition>
-        <h3 v-show="!lightSelected" :style="absoluteStyle" class="text-xs-center accent2--text font-weight-regular font-italic">{{message}}</h3>
+        <div v-show="!lightSelected" :style="absoluteStyle">
+          <p class="subheading font-weight-medium font-italic text-xs-center accent--text">{{message}}</p>
+          <v-divider></v-divider>
+        </div>
       </v-slide-y-transition>
       <v-slide-y-transition>
         <v-layout row wrap justify-center v-show="!lightSelected" :style="absoluteStyle" class="mt-3">
