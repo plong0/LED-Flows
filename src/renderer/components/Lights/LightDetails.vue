@@ -1,7 +1,7 @@
 <template>
   <v-card>
     <v-card-title>
-      <h3>{{light.name}}</h3>
+      <h6 class="title">{{light.name}}</h6>
       <v-btn
         icon
         small
@@ -19,7 +19,7 @@
         <v-flex xs12 lg5>
           [ {{firstAddress}} - {{lastAddress}} ]
           <span class="caption font-weight-light font-italic
-">( {{addressCount}} address{{addressCount | pluralize('address', 'es')}} )</span>
+">( {{addressCount}} {{addressCount | pluralize('address', 'addresses')}} )</span>
         </v-flex>
         <v-divider vertical class="hidden-md-and-down"></v-divider>
         <v-flex xs4 lg2 class="text-lg-center">
@@ -27,23 +27,23 @@
         </v-flex>
         <v-divider vertical class="hidden-md-and-down"></v-divider>
         <v-flex xs7 lg4 class="text-xs-right">
-          Center: ( {{location.x | toFixed(0)}} , {{location.y | toFixed(0)}} )
+          Center: <coordinates :x="location.x" :y="location.y"></coordinates>
         </v-flex>
       </v-layout>
     </v-card-title>
     <v-divider></v-divider>
     <v-card-text>
-      <h4>LEDs</h4>
       <light-leds :light="light" :addLED="addLED" :address-offset="addressOffset" :max-visible="maxVisibleLEDs"></light-leds>
     </v-card-text>
   </v-card>
 </template>
 
 <script>
+  import Coordinates from '@/components/Geometry/Coordinates'
   import LightLeds from './LightLeds'
 
   export default {
-    components: { LightLeds },
+    components: { Coordinates, LightLeds },
     props: {
       addLED: {
         type: Function
@@ -84,7 +84,7 @@
       },
       maxVisibleLEDs () {
         if (this.$vuetify.breakpoint.lgAndUp) {
-          return 36
+          return 30
         }
         return 24
       }

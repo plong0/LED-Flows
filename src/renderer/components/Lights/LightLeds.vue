@@ -1,86 +1,100 @@
 <template>
   <div>
-    <v-layout row>
-      <v-flex xs1 v-show="hasPreviousPage">
-        <v-btn
+    <span class="body-2">LEDs</span> <span class="caption font-weight-light">( {{pageCount ? page + 1 : 0}} / {{pageCount}} )</span>
+    <v-layout row justify-space-between>
+      <v-flex xs1>
+        <v-btn class="ma-0 mt-1"
           flat
           icon
+          :disabled="!hasPreviousPage"
           @click="previousPage()"
         >
-          <v-icon>fa-chevron-left</v-icon>
+          <v-icon>fa-caret-left</v-icon>
         </v-btn>
       </v-flex>
-      <v-flex xs10>
-        <v-layout row wrap>
-          <v-flex
-            xs2 lg1
-            v-for="(LEDs, address) in limitBy(LEDs, pageLimit, pageOffset)"
-            :key="laKey(light, offsetAddress(address))"
-          >
-            <v-hover open-delay="100" close-delay="75">
-              <div slot-scope="{ hover }" :style="{ position: 'relative', minHeight: '40px' }">
-                <v-slide-y-reverse-transition>
-                  <v-btn v-show="!hover"
-                    small
-                    icon
-                    color="accent"
-                  >
-                    <v-badge
-                      bottom
-                      color="success"
-                      :value="LEDs.length > 1"
+      <v-flex xs9>
+        <v-slide-x-transition leave-absolute>
+          <v-layout row wrap :key="pageKey">
+            <v-flex
+              xs2
+              v-for="(LEDs, address) in limitBy(LEDs, pageLimit, pageOffset)"
+              :key="laKey(light, offsetAddress(address))"
+            >
+              <v-hover open-delay="100" close-delay="75">
+                <div slot-scope="{ hover }" :style="{ position: 'relative', minHeight: '40px' }">
+                  <v-slide-y-reverse-transition>
+                    <v-btn v-show="!hover"
+                      small
+                      icon
+                      color="accent"
                     >
-                      <span slot="badge">{{LEDs.length}}</span>
-                      {{offsetAddress(address, true)}}
-                    </v-badge>
-                  </v-btn>
-                </v-slide-y-reverse-transition>
-                <v-scroll-y-transition>
-                  <v-layout column wrap align-content-start class="extra-leds elevation-2" :style="extraLedsStyle(LEDs)" v-if="hover">
-                    <v-flex
-                      v-for="(LED, index) in LEDs"
-                      :key="laiKey(light, offsetAddress(address), index)"
-                    >
-                      <v-btn
-                        small
-                        icon
-                        color="accent"
+                      <v-badge
+                        bottom
+                        color="success"
+                        :value="LEDs.length > 1"
                       >
-                        {{offsetAddress(address)}}
-                      </v-btn>
-                    </v-flex>
-                    <v-flex>
-                      <v-tooltip
-                      bottom
-                      open-delay="1000"
-                      v-if="addLED"
+                        <span slot="badge">{{LEDs.length}}</span>
+                        {{offsetAddress(address, true)}}
+                      </v-badge>
+                    </v-btn>
+                  </v-slide-y-reverse-transition>
+                  <v-scroll-y-transition>
+                    <v-layout column wrap align-content-start class="extra-leds elevation-2" :style="extraLedsStyle(LEDs)" v-if="hover">
+                      <v-flex
+                        v-for="(LED, index) in LEDs"
+                        :key="laiKey(light, offsetAddress(address), index)"
                       >
-                        <v-btn
-                          slot="activator"
-                          small
-                          icon
-                          color="secondary"
-                          @click="doAddLED(light, offsetAddress(address))"
+                        <v-tooltip
+                          right
+                          open-delay="250"
+                          close-delay="1000"
+                          >
+                          <v-btn
+                            slot="activator"
+                            small
+                            icon
+                            color="accent"
+                          >
+                            {{offsetAddress(address)}}
+                          </v-btn>
+                          <led-details :led="LED" :address="offsetAddress(address, true)" :local-address="offsetAddress(address)" :address-index="LEDs.length > 1 ? index : null" min-width="164px"></led-details>
+                        </v-tooltip>
+                      </v-flex>
+                      <v-flex>
+                        <v-tooltip
+                        right
+                        open-delay="1000"
+                        v-if="addLED"
                         >
-                          <v-icon small>fa-plus</v-icon>
-                        </v-btn>
-                        <span>Add a parallel LED (shared address, physically unique)</span>
-                      </v-tooltip>
-                    </v-flex>
-                  </v-layout>
-                </v-scroll-y-transition>
-              </div>
-            </v-hover>
-          </v-flex>
-        </v-layout>
+                          <v-btn
+                            slot="activator"
+                            small
+                            icon
+                            color="secondary"
+                            @click="addLED(light, offsetAddress(address))"
+                          >
+                            <v-icon small>fa-plus</v-icon>
+                          </v-btn>
+                          <span>Add a parallel LED</span><br/>
+                          <span class="caption font-italic">(shared address, physically unique)</span>
+                        </v-tooltip>
+                      </v-flex>
+                    </v-layout>
+                  </v-scroll-y-transition>
+                </div>
+              </v-hover>
+            </v-flex>
+          </v-layout>
+        </v-slide-x-transition>
       </v-flex>
-      <v-flex xs1 v-show="hasNextPage">
-        <v-btn
+      <v-flex xs1>
+        <v-btn class="ma-0 mt-1"
           flat
           icon
+          :disabled="!hasNextPage"
           @click="nextPage()"
         >
-          <v-icon>fa-chevron-right</v-icon>
+          <v-icon>fa-caret-right</v-icon>
         </v-btn>
       </v-flex>
     </v-layout>
@@ -88,7 +102,7 @@
       <v-btn
         round
         color="secondary"
-        @click="doAddLED(light)"
+        @click="addLED(light)"
       >
         <v-icon left>fa-plus</v-icon>
         Add LED
@@ -98,7 +112,10 @@
 </template>
 
 <script>
+  import LedDetails from './LedDetails'
+
   export default {
+    components: { LedDetails },
     props: {
       addLED: {
         type: Function
@@ -126,29 +143,41 @@
         return (this.light && this.light.LEDs) || []
       },
       hasNextPage () {
-        return (this.pageOffset + this.pageLimit) < this.LEDs.length
+        return (this.page < this.pageMax)
       },
       hasPreviousPage () {
         return (this.page > 0)
       },
+      pageCount () {
+        return (this.LEDs.length ? (this.pageMax + 1) : 0)
+      },
+      pageKey () {
+        return `page-${this.page}`
+      },
       pageLimit () {
-        return this.maxVisible || this.LEDs.length
+        return (this.maxVisible || this.LEDs.length)
+      },
+      pageMax () {
+        return ((this.pageLimit && this.LEDs.length)
+          ? Math.floor((this.LEDs.length - 1) / this.pageLimit)
+          : 0
+        )
       },
       pageOffset () {
         return (this.page * this.pageLimit)
       }
     },
-    methods: {
-      doAddLED (light, address = null) {
-        if (this.addLED) {
-          this.addLED(light, address).then(light => {
-            // it should always be on the last page after adding new address
-            if (address === null && this.hasNextPage) {
-              this.lastPage()
-            }
-          })
+    watch: {
+      maxVisible () {
+        if (this.pageCount && this.page >= this.pageCount) {
+          this.page = this.pageCount - 1
         }
-      },
+      }
+    },
+    created () {
+      this.$store.subscribe(this.storeUpdated)
+    },
+    methods: {
       extraLedsStyle (LEDs) {
         const rows = 6
         const columns = 3
@@ -175,14 +204,18 @@
         this.page = 0
       },
       laKey (light, address) {
-        return `${light.id}.${address}`
+        return `address-${light.id}.${address}`
       },
       laiKey (light, address, index) {
-        return `${light.id}.${address}.${index}`
+        return `led-${light.id}.${address}.${index}`
       },
       lastPage () {
-        while (this.hasNextPage) {
-          this.page++
+        this.page = this.pageMax
+      },
+      ledsAdded (light, address, LEDs) {
+        // it should always be on the last page after adding new address
+        if (address === (light.LEDs.length - 1) && this.hasNextPage) {
+          this.lastPage()
         }
       },
       nextPage () {
@@ -197,6 +230,16 @@
       },
       offsetAddress (value, external = false) {
         return (this.pageOffset + value + (external ? this.addressOffset : 0))
+      },
+      storeUpdated ({ type, payload }, state) {
+        switch (type) {
+          case 'Lights/ADD_LEDS':
+            // only handle the mutation if it was on our light
+            if (payload.light && this.light && payload.light.id === this.light.id) {
+              this.ledsAdded(payload.light, payload.address, payload.LEDs)
+            }
+            break
+        }
       }
     }
   }
