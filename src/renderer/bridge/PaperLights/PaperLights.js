@@ -13,7 +13,8 @@ export default class PaperLights {
     this.$PLT = new PaperLightsTheme(theme)
     this.$actions = {
       ...{
-        addLED: this.$addLED
+        addLED: this.$addLED,
+        addLight: this.$addLight
       },
       ...actions
     }
@@ -29,13 +30,28 @@ export default class PaperLights {
     }
     this.$lights = {}
     this.activateTool()
-    this.lightsAdded(lights)
+    this.onLightsAdded(lights)
   }
   $addLED (light, address, LED) {
     // TODO: implement default handler (stand-alone model)
   }
   $addLight () {
     // TODO: implement default handler (stand-alone model)
+  }
+  get activeAddress () {
+    return this.$state.activeAddress
+  }
+  get activeLight () {
+    return this.$state.activeLight
+  }
+  get activeTool () {
+    return this.$state.activeTool
+  }
+  get lights () {
+    return this.$lights
+  }
+  get theme () {
+    return this.$PLT
   }
   activateAddress (address = null) {
   }
@@ -53,41 +69,12 @@ export default class PaperLights {
     }
   }
   addLED (x, y) {
-    if (this.assertActiveLightAddress()) {
-      // console.log(`PaperLights addLED @ [ ${x}, ${y} ]`, this.$paper)
-      return this.$actions.addLED(this.activeLight, this.activeAddress, { x, y })
-    }
+    // it is ok if activeLight and activeAddress are not set here
+    // it only matters that the $action does the right thing with them undefined
+    return this.$actions.addLED(this.activeLight, this.activeAddress, { x, y })
   }
   addLight () {
     return this.$actions.addLight()
-  }
-  assertActiveLight () {
-    return true
-    /** TODO: sort out assertActiveLight promise chain (for now, the external $actions.addLED does it)
-    // make sure a light is active
-    if (!this.activeLight) {
-      return this.addLight()
-    }
-    return this.activeLight
-    */
-  }
-  assertActiveLightAddress () {
-    return true
-    /** TODO: sort out assertActiveLightAddress promise chain
-    // make sure a light and address are active
-    if (this.assertActiveLight()) {
-      if (!this.activeAddress) {
-        return true
-      }
-    }
-    return (this.activeLight && this.activeAddress)
-    */
-  }
-  assertPaper () {
-    if (this.$paper) {
-      this.$paper.activate()
-      return this.$paper
-    }
   }
   assertLight (light) {
     if (!PLD.isLight(light)) {
@@ -102,12 +89,10 @@ export default class PaperLights {
     }
     return this.$lights[light.id]
   }
-  resizeCanvas (width, height) {
-    if (this.$paper && this.$paper.view) {
-      this.$paper.view.element.style.width = width + 'px'
-      this.$paper.view.element.style.height = height + 'px'
-      this.$scaling.x = (width / this.$paper.view.viewSize.width)
-      this.$scaling.y = (height / this.$paper.view.viewSize.height)
+  assertPaper () {
+    if (this.$paper) {
+      this.$paper.activate()
+      return this.$paper
     }
   }
   normalizePoint (point) {
@@ -120,18 +105,18 @@ export default class PaperLights {
     }
     return point
   }
-  lightsAdded (lights) {
-    for (const light of lights) {
-      for (let [address, LEDs] of light.LEDs.entries()) {
-        this.ledsAdded(light, address, LEDs)
-      }
-    }
-  }
-  ledsAdded (light, address, LEDs) {
+  onLedsAdded (light, address, LEDs) {
     if (LEDs && LEDs.length) {
       light = this.assertLight(light)
       if (light) {
-        light.ledsAdded(address, LEDs)
+        light.onLedsAdded(address, LEDs)
+      }
+    }
+  }
+  onLightsAdded (lights) {
+    for (const light of lights) {
+      for (let [address, LEDs] of light.LEDs.entries()) {
+        this.ledsAdded(light, address, LEDs)
       }
     }
   }
@@ -140,25 +125,18 @@ export default class PaperLights {
       light.refresh()
     }
   }
+  resizeCanvas (width, height) {
+    if (this.$paper && this.$paper.view) {
+      this.$paper.view.element.style.width = width + 'px'
+      this.$paper.view.element.style.height = height + 'px'
+      this.$scaling.x = (width / this.$paper.view.viewSize.width)
+      this.$scaling.y = (height / this.$paper.view.viewSize.height)
+    }
+  }
   selectPaperLED () {
     // TODO: select by paperLED item (ie. paper item clicked)
   }
   selectPaperLight () {
     // TODO: select by paperLight item (if PaperLight renders any...)
-  }
-  get activeAddress () {
-    return this.$state.activeAddress
-  }
-  get activeLight () {
-    return this.$state.activeLight
-  }
-  get activeTool () {
-    return this.$state.activeTool
-  }
-  get lights () {
-    return this.$lights
-  }
-  get theme () {
-    return this.$PLT
   }
 }

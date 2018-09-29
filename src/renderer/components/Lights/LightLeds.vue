@@ -7,7 +7,7 @@
           flat
           icon
           :disabled="!hasPreviousPage"
-          @click="previousPage()"
+          @click="gotoPreviousPage()"
         >
           <v-icon>fa-caret-left</v-icon>
         </v-btn>
@@ -18,7 +18,7 @@
             <v-flex
               xs2
               v-for="(LEDs, address) in limitBy(LEDs, pageLimit, pageOffset)"
-              :key="laKey(light, offsetAddress(address))"
+              :key="lightAddressKey(light, offsetAddress(address))"
             >
               <v-hover open-delay="100" close-delay="75">
                 <div slot-scope="{ hover }" :style="{ position: 'relative', minHeight: '40px' }">
@@ -42,7 +42,7 @@
                     <v-layout column wrap align-content-start class="extra-leds elevation-2" :style="extraLedsStyle(LEDs)" v-if="hover">
                       <v-flex
                         v-for="(LED, index) in LEDs"
-                        :key="laiKey(light, offsetAddress(address), index)"
+                        :key="lightAddressIndexKey(light, offsetAddress(address), index)"
                       >
                         <v-tooltip
                           right
@@ -92,7 +92,7 @@
           flat
           icon
           :disabled="!hasNextPage"
-          @click="nextPage()"
+          @click="gotoNextPage()"
         >
           <v-icon>fa-caret-right</v-icon>
         </v-btn>
@@ -152,7 +152,7 @@
         return (this.LEDs.length ? (this.pageMax + 1) : 0)
       },
       pageKey () {
-        return `page-${this.page}`
+        return `led-page-${this.page}`
       },
       pageLimit () {
         return (this.maxVisible || this.LEDs.length)
@@ -169,8 +169,8 @@
     },
     watch: {
       maxVisible () {
-        if (this.pageCount && this.page >= this.pageCount) {
-          this.page = this.pageCount - 1
+        if (this.pageCount && this.page > this.pageMax) {
+          this.gotoLastPage()
         }
       }
     },
@@ -200,43 +200,43 @@
 
         return style
       },
-      firstPage () {
+      gotoFirstPage () {
         this.page = 0
       },
-      laKey (light, address) {
-        return `address-${light.id}.${address}`
-      },
-      laiKey (light, address, index) {
-        return `led-${light.id}.${address}.${index}`
-      },
-      lastPage () {
+      gotoLastPage () {
         this.page = this.pageMax
       },
-      ledsAdded (light, address, LEDs) {
-        // it should always be on the last page after adding new address
-        if (address === (light.LEDs.length - 1) && this.hasNextPage) {
-          this.lastPage()
-        }
-      },
-      nextPage () {
+      gotoNextPage () {
         if (this.hasNextPage) {
           this.page++
         }
       },
-      previousPage () {
+      gotoPreviousPage () {
         if (this.hasPreviousPage) {
           this.page--
         }
       },
+      lightAddressKey (light, address) {
+        return `address-${light.id}.${address}`
+      },
+      lightAddressIndexKey (light, address, index) {
+        return `led-${light.id}.${address}.${index}`
+      },
       offsetAddress (value, external = false) {
         return (this.pageOffset + value + (external ? this.addressOffset : 0))
+      },
+      onLedsAdded (light, address, LEDs) {
+        // it should always be on the last page after adding new address
+        if (address === (light.LEDs.length - 1) && this.hasNextPage) {
+          this.gotoLastPage()
+        }
       },
       storeUpdated ({ type, payload }, state) {
         switch (type) {
           case 'Lights/ADD_LEDS':
             // only handle the mutation if it was on our light
             if (payload.light && this.light && payload.light.id === this.light.id) {
-              this.ledsAdded(payload.light, payload.address, payload.LEDs)
+              this.onLedsAdded(payload.light, payload.address, payload.LEDs)
             }
             break
         }

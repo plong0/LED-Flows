@@ -110,10 +110,10 @@
       isActiveTool (name) {
         return (name.startsWith('Tool') && this.lightMap && this.lightMap.activeTool === name.substr(5))
       },
-      ledsAdded (light, address, LEDs) {
-        this.lightMap.ledsAdded(light, address, LEDs)
+      onLedsAdded (light, address, LEDs) {
+        this.lightMap.onLedsAdded(light, address, LEDs)
       },
-      lightActivated (light) {
+      onLightActivated (light) {
         this.lightMap.activateLight(light)
       },
       refreshCanvasSize () {
@@ -129,10 +129,10 @@
       storeUpdated ({ type, payload }, state) {
         switch (type) {
           case 'Lights/ADD_LEDS':
-            this.ledsAdded(payload.light, payload.address, payload.LEDs)
+            this.onLedsAdded(payload.light, payload.address, payload.LEDs)
             break
           case 'Lights/ACTIVATE_LIGHT':
-            this.lightActivated(payload)
+            this.onLightActivated(payload)
             break
         }
       }

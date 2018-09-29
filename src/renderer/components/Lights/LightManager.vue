@@ -101,9 +101,6 @@
       closeLight () {
         this.activeID = null
       },
-      lightActivated (light) {
-        this.loadLight(light ? light.id : null)
-      },
       lightTitle (light) {
         if (light && light.hasOwnProperty('id')) {
           const firstAddress = this.$store.getters['Lights/addressFirst'](light.id)
@@ -128,13 +125,16 @@
           this.lightID = lightID
         }
       },
+      onLightActivated (light) {
+        this.loadLight(light ? light.id : null)
+      },
       selectLight (lightID) {
         this.$store.dispatch('Lights/activateLight', { id: lightID })
       },
       storeUpdated ({ type, payload }, state) {
         switch (type) {
           case 'Lights/ACTIVATE_LIGHT':
-            this.lightActivated(payload)
+            this.onLightActivated(payload)
             break
         }
       }

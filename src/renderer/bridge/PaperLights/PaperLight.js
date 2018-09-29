@@ -8,14 +8,20 @@ export default class PaperLight {
     this.$PLT = theme
     this.$paperLEDs = []
   }
+  get id () {
+    return this.$model.id
+  }
+  get LEDs () {
+    return this.$model.LEDs
+  }
+  get theme () {
+    return this.$PLT
+  }
   assertPaper () {
     if (this.$paper) {
       this.$paper.activate()
       return this.$paper
     }
-  }
-  ledsAdded (address, LEDs) {
-    this.refresh()
   }
   generatePaperLED (LED, address) {
     if (!PLD.isLED(LED)) {
@@ -36,13 +42,8 @@ export default class PaperLight {
       y: point.y
     }
   }
-  refreshPaperLED (paperLED, LED, address) {
-    if (!PLD.isLED(LED)) {
-      throw new TypeError('Invalid LED')
-    }
-    paperLED.set(this.normalizePoint(LED))
-    paperLED.data.address = address
-    return paperLED
+  onLedsAdded (address, LEDs) {
+    this.refresh()
   }
   refresh () {
     let index = 0
@@ -63,13 +64,12 @@ export default class PaperLight {
       }
     }
   }
-  get id () {
-    return this.$model.id
-  }
-  get LEDs () {
-    return this.$model.LEDs
-  }
-  get theme () {
-    return this.$PLT
+  refreshPaperLED (paperLED, LED, address) {
+    if (!PLD.isLED(LED)) {
+      throw new TypeError('Invalid LED')
+    }
+    paperLED.set(this.normalizePoint(LED))
+    paperLED.data.address = address
+    return paperLED
   }
 }
