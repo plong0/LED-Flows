@@ -43,7 +43,13 @@ export default class PaperLight {
     }
   }
   onLedsAdded (address, LEDs) {
-    this.refresh()
+    for (const LED of LEDs) {
+      try {
+        this.generatePaperLED(LED, address)
+      } catch (error) {
+        // Bad LED
+      }
+    }
   }
   refresh () {
     let index = 0
