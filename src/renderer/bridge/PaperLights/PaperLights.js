@@ -24,11 +24,15 @@ export default class PaperLights {
       ...tools
     }
     this.$state = {
-      activeTool: null,
+      activeAddress: null,
+      activeLayer: null,
       activeLight: null,
-      activeAddress: null
+      activeTool: null
     }
+    this.$layers = {}
     this.$lights = {}
+    this.addLayers(['default', 'LightLines', 'LEDs'])
+    this.activateLayer()
     this.activateTool()
     this.onLightsAdded(lights)
   }
@@ -55,6 +59,12 @@ export default class PaperLights {
   }
   activateAddress (address = null) {
   }
+  activateLayer (name = 'default') {
+    if (this.$layers.hasOwnProperty(name) && this.assertPaper()) {
+      this.$layers[name].activate()
+      this.$state.activeLayer = name
+    }
+  }
   activateLight (light = null, address = null) {
     if (this.$state.activeLight && (!light || this.$state.activeLight.id !== light.id)) {
       this.activateTool()
@@ -63,9 +73,27 @@ export default class PaperLights {
     this.$state.activeAddress = address
   }
   activateTool (name = 'default') {
-    if (this.$tools.hasOwnProperty(name) && this.assertPaper() && !this.$tools[name].isActive()) {
+    if (this.$tools.hasOwnProperty(name) && !this.$tools[name].isActive() && this.assertPaper()) {
       this.$tools[name].activate()
       this.$state.activeTool = name
+    }
+  }
+  addLayer (name, index = undefined) {
+    // undefined index appends (behaviour of paper.Project.insertLayer)
+    if (name && !this.$layers.hasOwnProperty(name) && this.assertPaper()) {
+      const layer = new paper.Layer({ name })
+      if (this.$paper.insertLayer(index, layer) !== null) {
+        this.$layers[name] = layer
+      } else {
+        layer.remove()
+      }
+      this.activateLayer(this.$state.activeLayer || undefined)
+    }
+  }
+  addLayers (names, index = undefined) {
+    let indexOffset = 0
+    for (const name of names) {
+      this.addLayer(name, ((index || index === 0) ? (index + indexOffset++) : undefined))
     }
   }
   addLED (x, y) {
@@ -91,6 +119,14 @@ export default class PaperLights {
     if (this.$paper) {
       this.$paper.activate()
       return this.$paper
+    }
+  }
+  getLayer (name = null) {
+    if (name === null) {
+      name = this.$state.activeLayer
+    }
+    if (name && this.$layers.hasOwnProperty(name)) {
+      return this.$layers[name]
     }
   }
   normalizePoint (point) {

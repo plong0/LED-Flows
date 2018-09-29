@@ -5,7 +5,8 @@ export default class PaperLight {
   constructor (paperLights, { model }) {
     this.$PL = paperLights
     this.$model = model
-    this.$paperLEDs = []
+    this.$paperGroupLEDs = null
+    this.$paperLEDs = {}
   }
   get id () {
     return this.$model.id
@@ -16,16 +17,44 @@ export default class PaperLight {
   get theme () {
     return this.$PL.theme
   }
+  assertPaperAddress (address) {
+    if (!this.$paperLEDs.hasOwnProperty(address)) {
+      if (this.assertPaperGroupLEDs()) {
+        this.$paperLEDs[address] = {
+          id: address,
+          group: new paper.Group({ name: `light-leds-address-${this.id}-${address}` }),
+          LEDs: []
+        }
+        this.$paperGroupLEDs.addChild(this.$paperLEDs[address].group)
+      }
+    }
+    return this.$paperLEDs[address]
+  }
+  assertPaperGroupLEDs () {
+    if (!this.$paperGroupLEDs) {
+      this.$paperGroupLEDs = new paper.Group({ name: `light-leds-${this.id}` })
+      const layer = this.$PL.getLayer('LEDs')
+      if (layer) {
+        layer.addChild(this.$paperGroupLEDs)
+      }
+    }
+    return this.$paperGroupLEDs
+  }
   generatePaperLED (LED, address) {
     if (!PLD.isLED(LED)) {
       throw new TypeError('Invalid LED')
     }
     if (this.$PL.assertPaper()) {
-      let paperLED = new paper.Shape.Circle(this.normalizePoint(LED), this.theme.get('LED-radius'))
-      paperLED.data.light = this
-      this.theme.apply(this.theme.styleForLED, paperLED)
-      this.$paperLEDs.push(paperLED)
-      return this.refreshPaperLED(paperLED, LED, address)
+      const paperAddress = this.assertPaperAddress(address)
+      if (paperAddress) {
+        let paperLED = new paper.Shape.Circle(this.normalizePoint(LED), this.theme.get('LED-radius'))
+        paperAddress.group.addChild(paperLED)
+        paperAddress.LEDs.push(paperLED)
+        paperLED.data.address = paperAddress
+        paperLED.data.light = this
+        this.theme.apply(this.theme.styleForLED, paperLED)
+        return this.refreshPaperLED(paperLED, LED, address)
+      }
     }
   }
   normalizePoint (point, toLocal = false) {
@@ -45,30 +74,26 @@ export default class PaperLight {
     }
   }
   refresh () {
-    let index = 0
-    for (const address of this.LEDs) {
-      for (const LED of address) {
-        try {
-          if (index >= this.$paperLEDs.length) {
-            if (this.generatePaperLED(LED, address)) {
-              index++
-            }
-          } else {
-            this.refreshPaperLED(this.$paperLEDs[index], LED, address)
-            index++
-          }
-        } catch (error) {
-          // Bad LED
-        }
-      }
-    }
+    // TODO: refresh the PaperLEDs
   }
   refreshPaperLED (paperLED, LED, address) {
     if (!PLD.isLED(LED)) {
       throw new TypeError('Invalid LED')
     }
     paperLED.set(this.normalizePoint(LED))
-    paperLED.data.address = address
+    const paperAddress = this.assertPaperAddress(address)
+    if (paperAddress && (!paperLED.data.address || paperLED.data.address.id !== paperAddress.id)) {
+      if (paperLED.data.address) {
+        const oldAddress = paperLED.data.address
+        const oldAddressIndex = oldAddress.LEDs.indexOf(paperLED)
+        if (oldAddressIndex !== -1) {
+          oldAddress.LEDs.splice(oldAddressIndex, 1)
+        }
+      }
+      paperAddress.group.addChild(paperLED)
+      paperAddress.LEDs.push(paperLED)
+      paperLED.data.address = paperAddress
+    }
     return paperLED
   }
 }
