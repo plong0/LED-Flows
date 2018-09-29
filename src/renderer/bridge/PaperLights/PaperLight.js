@@ -2,10 +2,9 @@ import paper from 'paper'
 import PLD from './PaperLightsData'
 
 export default class PaperLight {
-  constructor ({ paper, model, theme }) {
-    this.$paper = paper
+  constructor (paperLights, { model }) {
+    this.$PL = paperLights
     this.$model = model
-    this.$PLT = theme
     this.$paperLEDs = []
   }
   get id () {
@@ -15,19 +14,13 @@ export default class PaperLight {
     return this.$model.LEDs
   }
   get theme () {
-    return this.$PLT
-  }
-  assertPaper () {
-    if (this.$paper) {
-      this.$paper.activate()
-      return this.$paper
-    }
+    return this.$PL.theme
   }
   generatePaperLED (LED, address) {
     if (!PLD.isLED(LED)) {
       throw new TypeError('Invalid LED')
     }
-    if (this.assertPaper()) {
+    if (this.$PL.assertPaper()) {
       let paperLED = new paper.Shape.Circle(this.normalizePoint(LED), this.theme.get('LED-radius'))
       paperLED.data.light = this
       this.theme.apply(this.theme.styleForLED, paperLED)

@@ -81,10 +81,8 @@ export default class PaperLights {
       throw new TypeError('Invalid Light')
     }
     if (!this.$lights[light.id]) {
-      this.$lights[light.id] = new PaperLight({
-        paper: this.$paper,
-        model: light,
-        theme: this.theme
+      this.$lights[light.id] = new PaperLight(this, {
+        model: light
       })
     }
     return this.$lights[light.id]
