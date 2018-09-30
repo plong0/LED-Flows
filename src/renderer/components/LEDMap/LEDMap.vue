@@ -70,6 +70,7 @@
       this.lightMap = new PaperLights({
         canvas: this.$refs.canvas,
         actions: {
+          addLead: this.addLead,
           addLED: this.addLED,
           addLight: this.addLight
         },
@@ -84,8 +85,25 @@
       activateTool (name) {
         this.lightMap.activateTool(name)
       },
+      addLead (light, address, index, lead) {
+        if (lead) {
+          if (!light) {
+            light = this.activeLight
+          }
+          if (light) {
+            this.$store.dispatch('Lights/addLead', { light, address, index, lead })
+          } else {
+            this.addLight().then(light => {
+              this.$store.dispatch('Lights/addLead', { light, address, index, lead })
+            })
+          }
+        }
+      },
       addLED (light, address, LED) {
         if (LED) {
+          if (!light) {
+            light = this.activeLight
+          }
           if (light) {
             this.$store.dispatch('Lights/addLED', { light, address, LED })
           } else {
@@ -113,6 +131,9 @@
       onLedsAdded (light, address, LEDs) {
         this.lightMap.onLedsAdded(light, address, LEDs)
       },
+      onLeadsAdded (light, address, index, leads) {
+        this.lightMap.onLeadsAdded(light, address, index, leads)
+      },
       onLightActivated (light) {
         this.lightMap.activateLight(light)
       },
@@ -128,6 +149,9 @@
       },
       storeUpdated ({ type, payload }, state) {
         switch (type) {
+          case 'Lights/ADD_LEADS':
+            this.onLeadsAdded(payload.light, payload.address, payload.index, payload.leads)
+            break
           case 'Lights/ADD_LEDS':
             this.onLedsAdded(payload.light, payload.address, payload.LEDs)
             break

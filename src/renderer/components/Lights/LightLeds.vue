@@ -17,8 +17,8 @@
           <v-layout row wrap :key="pageKey">
             <v-flex
               xs2
-              v-for="(LEDs, address) in limitBy(LEDs, pageLimit, pageOffset)"
-              :key="lightAddressKey(light, offsetAddress(address))"
+              v-for="(address, addressIndex) in limitBy(LEDs, pageLimit, pageOffset)"
+              :key="lightAddressKey(light, offsetAddress(addressIndex))"
             >
               <v-hover open-delay="100" close-delay="75">
                 <div slot-scope="{ hover }" :style="{ position: 'relative', minHeight: '40px' }">
@@ -31,18 +31,18 @@
                       <v-badge
                         bottom
                         color="success"
-                        :value="LEDs.length > 1"
+                        :value="address.LEDs.length > 1"
                       >
-                        <span slot="badge">{{LEDs.length}}</span>
-                        {{offsetAddress(address, true)}}
+                        <span slot="badge">{{address.LEDs.length}}</span>
+                        {{offsetAddress(addressIndex, true)}}
                       </v-badge>
                     </v-btn>
                   </v-slide-y-reverse-transition>
                   <v-scroll-y-transition>
-                    <v-layout column wrap align-content-start class="extra-leds elevation-2" :style="extraLedsStyle(LEDs)" v-if="hover">
+                    <v-layout column wrap align-content-start class="extra-leds elevation-2" :style="extraLedsStyle(address.LEDs)" v-if="hover">
                       <v-flex
-                        v-for="(LED, index) in LEDs"
-                        :key="lightAddressIndexKey(light, offsetAddress(address), index)"
+                        v-for="(LED, index) in address.LEDs"
+                        :key="lightAddressIndexKey(light, offsetAddress(addressIndex), index)"
                       >
                         <v-tooltip
                           right
@@ -55,9 +55,9 @@
                             icon
                             color="accent"
                           >
-                            {{offsetAddress(address)}}
+                            {{offsetAddress(addressIndex)}}
                           </v-btn>
-                          <led-details :led="LED" :address="offsetAddress(address, true)" :local-address="offsetAddress(address)" :address-index="LEDs.length > 1 ? index : null" min-width="164px"></led-details>
+                          <led-details :led="LED" :address="offsetAddress(addressIndex, true)" :local-address="offsetAddress(addressIndex)" :address-index="address.LEDs.length > 1 ? index : null" min-width="164px"></led-details>
                         </v-tooltip>
                       </v-flex>
                       <v-flex>
@@ -71,7 +71,7 @@
                             small
                             icon
                             color="secondary"
-                            @click="addLED(light, offsetAddress(address))"
+                            @click="addLED(light, offsetAddress(addressIndex))"
                           >
                             <v-icon small>fa-plus</v-icon>
                           </v-btn>

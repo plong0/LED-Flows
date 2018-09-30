@@ -65,30 +65,30 @@ const getters = {
       height: 0
     }
     if (light && light.LEDs.length) {
-      const leds = light.LEDs.reduce((result, LEDs) => {
-        const address = LEDs.reduce((result, LED) => {
+      const lightBounds = light.LEDs.reduce((result, address) => {
+        const addressBounds = address.LEDs.reduce((result, LED) => {
           if (isNaN(result.minX) || LED.x < result.minX) result.minX = LED.x
           if (isNaN(result.maxX) || LED.x > result.maxX) result.maxX = LED.x
           if (isNaN(result.minY) || LED.y < result.minY) result.minY = LED.y
           if (isNaN(result.maxY) || LED.y > result.maxY) result.maxY = LED.y
           return result
         }, { minX: NaN, maxX: NaN, minY: NaN, maxY: NaN })
-        if (isNaN(result.minX) || address.minX < result.minX) result.minX = address.minX
-        if (isNaN(result.maxX) || address.maxX > result.maxX) result.maxX = address.maxX
-        if (isNaN(result.minY) || address.minY < result.minY) result.minY = address.minY
-        if (isNaN(result.maxY) || address.maxY > result.maxY) result.maxY = address.maxY
+        if (isNaN(result.minX) || addressBounds.minX < result.minX) result.minX = addressBounds.minX
+        if (isNaN(result.maxX) || addressBounds.maxX > result.maxX) result.maxX = addressBounds.maxX
+        if (isNaN(result.minY) || addressBounds.minY < result.minY) result.minY = addressBounds.minY
+        if (isNaN(result.maxY) || addressBounds.maxY > result.maxY) result.maxY = addressBounds.maxY
         return result
       }, { minX: NaN, maxX: NaN, minY: NaN, maxY: NaN })
-      bounds.left = leds.minX
-      bounds.right = leds.maxX
-      bounds.top = leds.minY
-      bounds.bottom = leds.maxY
+      bounds.left = lightBounds.minX
+      bounds.right = lightBounds.maxX
+      bounds.top = lightBounds.minY
+      bounds.bottom = lightBounds.maxY
       bounds.center = {
-        x: (leds.minX + leds.maxX) / 2.0,
-        y: (leds.minY + leds.maxY) / 2.0
+        x: (lightBounds.minX + lightBounds.maxX) / 2.0,
+        y: (lightBounds.minY + lightBounds.maxY) / 2.0
       }
-      bounds.width = (leds.maxX - leds.minX)
-      bounds.height = (leds.maxY - leds.minY)
+      bounds.width = (lightBounds.maxX - lightBounds.minX)
+      bounds.height = (lightBounds.maxY - lightBounds.minY)
     }
     return bounds
   },
@@ -97,7 +97,7 @@ const getters = {
     if (light && light.LEDs.length) {
       let count = 0
       for (let address of light.LEDs) {
-        count += address.length
+        count += address.LEDs.length
       }
       return count
     }
@@ -131,13 +131,21 @@ const mutations = {
   },
   FILL_ADDRESSES (state, { light, upTo }) {
     // append as many empty address arrays as needed to have (upTo + 1) entries (counting starts at 0 and upTo is a target address)
-    const newLEDs = Array(1 + upTo - light.LEDs.length).fill().map(() => [])
+    const newLEDs = Array(1 + upTo - light.LEDs.length).fill().map(() => ({
+      leads: [],
+      LEDs: []
+    }))
     light.LEDs.push(...newLEDs)
+  },
+  ADD_LEADS (state, { light, leads, address, index }) {
+    // address is required to be explicitly set so subscribers know
+    // concatenate to existing address
+    light.LEDs[address].leads.splice(index, 0, ...leads)
   },
   ADD_LEDS (state, { light, LEDs, address }) {
     // address is required to be explicitly set so subscribers know
     // concatenate to existing address
-    light.LEDs[address].push(...LEDs)
+    light.LEDs[address].LEDs.push(...LEDs)
   }
 }
 
@@ -149,6 +157,33 @@ const actions = {
       }
       commit('ACTIVATE_LIGHT', light, light === null)
       return light
+    }
+  },
+  addLead ({ dispatch }, { light, lead = { x: 0, y: 0 }, address = -1, index = -1 }) {
+    return dispatch('addLeads', { light, address, index, leads: [lead] })
+  },
+  addLeads ({ commit, getters, dispatch }, { light: { id, ..._light }, leads = [], address = -1, index = -1 }) {
+    if (!leads.length) {
+      return
+    }
+    if (isNaN(address) || address === null) {
+      address = -1
+    }
+    if (isNaN(index) || index === null) {
+      index = -1
+    }
+    const light = getters.light(id)
+    if (light) {
+      if (address < 0) {
+        // push next address if none given
+        address = light.LEDs.length
+      }
+      dispatch('assertAddress', { light, address }).then((_address) => {
+        if (index < 0) {
+          index = _address.leads.length
+        }
+        commit('ADD_LEADS', { light, leads, address, index })
+      })
     }
   },
   addLED ({ dispatch }, { light, LED = { x: 0, y: 0 }, address = -1 }) {
@@ -177,6 +212,7 @@ const actions = {
     if (light && light.LEDs.length <= address) {
       commit('FILL_ADDRESSES', { light, upTo: address })
     }
+    return light.LEDs[address]
   },
   createLight ({ commit, getters }, { name = 'New Light', addressOffset = null } = {}) {
     const light = {

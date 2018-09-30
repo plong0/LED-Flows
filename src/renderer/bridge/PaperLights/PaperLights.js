@@ -39,6 +39,9 @@ export default class PaperLights {
   $addLED (light, address, LED) {
     // TODO: implement default handler (stand-alone model)
   }
+  $addLead (light, address, index, lead) {
+    // TODO: implement default handler (stand-alone model)
+  }
   $addLight () {
     // TODO: implement default handler (stand-alone model)
   }
@@ -57,7 +60,14 @@ export default class PaperLights {
   get theme () {
     return this.$PLT
   }
+  get viewHeight () {
+    return this.$paper.view.viewSize.height
+  }
+  get viewWidth () {
+    return this.$paper.view.viewSize.width
+  }
   activateAddress (address = null) {
+    this.$state.activeAddress = address
   }
   activateLayer (name = 'default') {
     if (this.$layers.hasOwnProperty(name) && this.assertPaper()) {
@@ -96,10 +106,15 @@ export default class PaperLights {
       this.addLayer(name, ((index || index === 0) ? (index + indexOffset++) : undefined))
     }
   }
-  addLED (x, y) {
+  addLED (x, y, address = null, light = null) {
     // it is ok if activeLight and activeAddress are not set here
     // it only matters that the $action does the right thing with them undefined
-    return this.$actions.addLED(this.activeLight, this.activeAddress, { x, y })
+    return this.$actions.addLED((light !== null ? light : this.activeLight), (address !== null ? address : this.activeAddress), { x, y })
+  }
+  addLead (x, y, address = null, index = null, light = null) {
+    // it is ok if activeLight and activeAddress are not set here
+    // it only matters that the $action does the right thing with them undefined
+    return this.$actions.addLead((light !== null ? light : this.activeLight), (address !== null ? address : this.activeAddress), index, { x, y })
   }
   addLight () {
     return this.$actions.addLight()
@@ -144,6 +159,14 @@ export default class PaperLights {
       light = this.assertLight(light)
       if (light) {
         light.onLedsAdded(address, LEDs)
+      }
+    }
+  }
+  onLeadsAdded (light, address, index, leads) {
+    if (leads && leads.length) {
+      light = this.assertLight(light)
+      if (light) {
+        light.onLeadsAdded(address, index, leads)
       }
     }
   }

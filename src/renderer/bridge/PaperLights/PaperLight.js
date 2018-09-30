@@ -64,6 +64,15 @@ export default class PaperLight {
       y: point.y
     }
   }
+  onLeadsAdded (address, index, leads) {
+    for (const lead of leads) {
+      try {
+        console.log(`NEW LEAD ON [${address}] @ [${index}] =>`, lead)
+      } catch (error) {
+        // Bad LED
+      }
+    }
+  }
   onLedsAdded (address, LEDs) {
     for (const LED of LEDs) {
       try {
