@@ -1,8 +1,18 @@
-export default {
+const PaperLightsData = {
+  hasID: (value) => (
+    value && value.hasOwnProperty('id')
+  ),
+  isLead: (lead) => (
+    PaperLightsData.isPoint(lead)
+  ),
   isLED: (LED) => (
-    LED && !isNaN(LED.x) && !isNaN(LED.y) && LED.x !== null && LED.y !== null
+    PaperLightsData.isPoint(LED)
   ),
   isLight: (light) => (
-    light && light.hasOwnProperty('id') && Array.isArray(light.LEDs)
-  )
+    PaperLightsData.hasID(light) && Array.isArray(light.LEDs)
+  ),
+  isPoint: (value) => {
+    return value && !isNaN(value.x) && !isNaN(value.y) && value.x !== null && value.y !== null
+  }
 }
+export default PaperLightsData

@@ -5,14 +5,26 @@ export default class PaperLightsTheme {
       'LED-radius': 5,
       'LED-style-fillColor': 'blue',
       'LED-style-strokeColor': 'white',
-      'LED-style-strokeWidth': 1.0
+      'LED-style-strokeWidth': 1.0,
+      'Light-Line-style-strokeColor': 'yellow',
+      'Light-Line-style-strokeWidth': 3.0
     }
   }
-
+  get styleForLED () {
+    return this.getStyleStartsWith('LED-style-')
+  }
+  get styleForLightLine () {
+    return this.getStyleStartsWith('Light-Line-style-')
+  }
+  get theme () {
+    return {
+      ...this.$defaults,
+      ...this.$custom
+    }
+  }
   apply (style, toItem) {
     toItem.style = style
   }
-
   get (key) {
     const theme = this.theme
     if (theme.hasOwnProperty(key)) {
@@ -31,18 +43,11 @@ export default class PaperLightsTheme {
       return obj
     }, {})
   }
-
-  get styleForLED () {
+  getStyleStartsWith (prefix) {
     return this.getFilteredTheme(key => {
-      return key.startsWith('LED-style-')
+      return key.startsWith(prefix)
     }, key => {
-      return key.substr(10)
+      return key.substr(prefix.length)
     })
-  }
-  get theme () {
-    return {
-      ...this.$defaults,
-      ...this.$custom
-    }
   }
 }
