@@ -90,13 +90,21 @@
           this.activeID = light.id
         })
       },
-      addLED (light, address) {
+      addLED (light, address = null) {
         /** TODO: accept a location
           - read location from last LED + compass
           - auto-set compass to vector of last 2 addresses in Light
             - (multi-LED addresses should use an average of all their locations)
         */
-        return this.$store.dispatch('Lights/addLED', { light, address })
+        let LED = { x: 0, y: 0 }
+        if (address !== null && light.LEDs.hasOwnProperty(address) && light.LEDs[address].LEDs.length) {
+          const lastLED = light.LEDs[address].LEDs[light.LEDs[address].LEDs.length - 1]
+          LED = {
+            x: lastLED.x,
+            y: lastLED.y + 25
+          }
+        }
+        return this.$store.dispatch('Lights/addLED', { light, address, LED })
       },
       closeLight () {
         this.activeID = null

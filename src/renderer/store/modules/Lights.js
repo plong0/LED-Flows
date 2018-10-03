@@ -163,6 +163,7 @@ const actions = {
     return dispatch('addLeads', { light, address, index, leads: [lead] })
   },
   addLeads ({ commit, getters, dispatch }, { light: { id, ..._light }, leads = [], address = -1, index = -1 }) {
+    leads = leads.filter(lead => lead)
     if (!leads.length) {
       return
     }
@@ -190,6 +191,7 @@ const actions = {
     return dispatch('addLEDs', { light, address, LEDs: [LED] })
   },
   addLEDs ({ commit, getters, dispatch }, { light: { id, ..._light }, LEDs = [], address = -1 }) {
+    LEDs = LEDs.filter(LED => LED)
     if (!LEDs.length) {
       return
     }
