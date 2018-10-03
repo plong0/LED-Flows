@@ -76,7 +76,10 @@
         },
         theme: {
           'LED-style-fillColor': this.$vuetify.theme.secondary,
-          'LED-style-strokeColor': ''
+          'LED-style-strokeColor': '',
+          'Light-Line-style-strokeColor': this.$vuetify.theme.primary,
+          'Light-Line-style-strokeColor-alpha': 0.3,
+          'Light-Line-style-strokeWidth': 4.0
         },
         lights: this.lights
       })
