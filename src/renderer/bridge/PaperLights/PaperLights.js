@@ -172,8 +172,10 @@ export default class PaperLights {
   }
   onLightsAdded (lights) {
     for (const light of lights) {
-      for (let [address, LEDs] of light.LEDs.entries()) {
-        this.ledsAdded(light, address, LEDs)
+      // uses .entries() to get iterator with key and value
+      for (let [address, entry] of light.LEDs.entries()) {
+        this.onLedsAdded(light, address, entry.LEDs)
+        this.onLeadsAdded(light, address, 0, entry.leads)
       }
     }
   }
