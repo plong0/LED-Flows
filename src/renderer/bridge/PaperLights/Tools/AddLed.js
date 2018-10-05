@@ -10,7 +10,7 @@ export default class AddLed extends PaperLightTool {
           return
         }
         const point = this.$PL.normalizePoint(event.point)
-        this.$PL.addLED(point.x, point.y)
+        this.$PL.addLED(point)
       }
     }
     this.bindEvents(events)

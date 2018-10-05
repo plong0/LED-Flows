@@ -72,7 +72,9 @@
         actions: {
           addLead: this.addLead,
           addLED: this.addLED,
-          addLight: this.addLight
+          addLight: this.addLight,
+          moveLead: this.moveLead,
+          moveLED: this.moveLED
         },
         theme: {
           'LED-style-fillColor': this.$vuetify.theme.secondary,
@@ -131,6 +133,11 @@
       isActiveTool (name) {
         return (name.startsWith('Tool') && this.lightMap && this.lightMap.activeTool === name.substr(5))
       },
+      moveLead (light, address, index, delta) {
+      },
+      moveLED (light, address, index, delta) {
+        this.$store.dispatch('Lights/moveLED', { light, address, index, delta })
+      },
       onLedsAdded (light, address, LEDs) {
         this.lightMap.onLedsAdded(light, address, LEDs)
       },
@@ -139,6 +146,9 @@
       },
       onLightActivated (light) {
         this.lightMap.activateLight(light)
+      },
+      onLedMoved (light, address, index, position) {
+        this.lightMap.onLedMoved(light, address, index, position)
       },
       refreshCanvasSize () {
         if (this.$refs.canvasDummy) {
@@ -160,6 +170,9 @@
             break
           case 'Lights/ACTIVATE_LIGHT':
             this.onLightActivated(payload)
+            break
+          case 'Lights/MOVE_LED':
+            this.onLedMoved(payload.light, payload.address, payload.index, payload.point)
             break
         }
       }

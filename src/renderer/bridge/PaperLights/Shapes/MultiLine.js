@@ -45,25 +45,19 @@ export default class MultiLine extends Group {
       // make sure multiPoint cotains valid Point objects
       multiPoint = multiPoint.filter((value) => (
         value && !isNaN(value.x) && !isNaN(value.y) && value.x !== null && value.y !== null
-      )).map((value) => (
-        new Point(value.x, value.y)
-      ))
+      )).map((value) => {
+        let point = new Point(value.x, value.y)
+        if (value.data) {
+          point.data = value.data
+        }
+        return point
+      })
       if (!multiPoint.length) {
         // nothing left after validation
         return
       }
-      if (index >= 0) {
-        // count how many multiJoinPoints there are on the line before index
-        // this allows caller to interact using indexes of only the points it inserts
-        // (caller can safely ignore any auto-generated connection points)
-        let indexOffset = 0
-        for (let i = 0; i < this.data.multiPoints.length && i <= index + indexOffset; i++) {
-          if (this.data.multiPoints[i].constructor.name === 'Point') {
-            indexOffset++
-          }
-        }
-        index += indexOffset
-      }
+      // offset the index
+      index += this.getIndexOffset(index)
       // determine where to insert the point
       let addLinePoint = true // track if it will be a new multiPoint, or append (stack) to an existing one
       if (index < 0) {
@@ -86,6 +80,7 @@ export default class MultiLine extends Group {
           const p2 = this.data.multiPoints[1][0]
           this.data.mainLine = new Path.Line({ from: p1, to: p2, insert: false })
           this.addChild(this.data.mainLine)
+          this.data.mainLine.data = { ...this.data.data }
           this.data.mainLine.style = this.data.style
         } else if (this.data.mainLine) {
           // existing mainLine, add the first entry from multiPoint to it
@@ -198,6 +193,11 @@ export default class MultiLine extends Group {
                 from: point1,
                 to: point2
               })
+              multiLine.data = {
+                ...this.data.data,
+                multiSegment: index - (direction < 0 ? this.getIndexOffset(index) : 0),
+                multiIndex: i
+              }
               this.data.multiPointLines[index][slot].push(multiLine)
               this.data.multiLines.addChild(multiLine)
               multiLine.style = this.data.style
@@ -211,12 +211,72 @@ export default class MultiLine extends Group {
         }
       }
     }
+    this.getIndexOffset = (index) => {
+      if (index >= 0) {
+        // count how many multiJoinPoints there are on the line before index
+        // this allows caller to interact using indexes of only the points it inserts
+        // (caller can safely ignore any auto-generated connection points)
+        let indexOffset = 0
+        for (let i = 0; i < this.data.multiPoints.length && i <= index + indexOffset; i++) {
+          if (this.data.multiPoints[i].constructor.name === 'Point') {
+            indexOffset++
+          }
+        }
+        return indexOffset
+      }
+      return 0
+    }
+    this.refreshChildValues = (key, object) => {
+      let updateItems = []
+      if (this.data.mainLine) {
+        updateItems.push(this.data.mainLine)
+      }
+      for (let index in this.data.multiPointLines) {
+        updateItems.push(
+          ...this.data.multiPointLines[index]['to'],
+          ...this.data.multiPointLines[index]['from']
+        )
+      }
+      for (let item of updateItems) {
+        if (item && typeof item === 'object' && typeof item[key] === 'object') {
+          for (let prop in object) {
+            item[key][prop] = object[prop]
+          }
+        }
+      }
+    }
+    this.setData = (data) => {
+      // data gets assigned to the items that make up the MultiLine
+      this.data.data = data
+      this.refreshChildValues('data', this.data.data)
+    }
+    this.setMultiPoint = (index, multiIndex, point) => {
+      // localize index (accounts for auto-injected points)
+      index += this.getIndexOffset(index)
+      if (index >= 0 && index < this.data.multiPoints.length) {
+        // look up the multiPoint entry
+        let multiPoint = this.data.multiPoints[index]
+        if (Array.isArray(multiPoint) && multiIndex >= 0 && multiIndex < multiPoint.length) {
+          // update the multiPoint entry
+          multiPoint[multiIndex].set(point)
+          // update the mainLine
+          if (multiIndex === 0 && this.data.mainLine && this.data.mainLine.segments.length && index < this.data.mainLine.segments.length) {
+            this.data.mainLine.segments[index].point.set(point)
+          }
+          // update the multiPointLines
+          // check multi-connection before index
+          index = this.checkMultiPoint(index, -1)
+          // check the multi-connection after index
+          index = this.checkMultiPoint(index, 1)
+        }
+      }
+    }
     this.setStyle = (style) => {
       // save it in data.style to be applied to future children
       for (let prop in style) {
         this.data.style[prop] = style[prop]
       }
-      // sets it on any existing children
+      // paper.js automatically applies it to any existing children
       this.style = style
     }
   }

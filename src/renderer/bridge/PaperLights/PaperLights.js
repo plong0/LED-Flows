@@ -8,13 +8,17 @@ export default class PaperLights {
   constructor ({ canvas, theme = {}, lights = [], actions = {}, tools = {} }) {
     if (canvas) {
       this.$paper = new paper.Project(canvas)
+      this.$paper.options.hitTolerance = 10
     }
     this.$scaling = { x: 1.0, y: 1.0 }
     this.$PLT = new PaperLightsTheme(theme)
     this.$actions = {
       ...{
+        addLead: this.$addLead,
         addLED: this.$addLED,
-        addLight: this.$addLight
+        addLight: this.$addLight,
+        moveLead: this.$moveLead,
+        moveLED: this.$moveLED
       },
       ...actions
     }
@@ -43,6 +47,12 @@ export default class PaperLights {
     // TODO: implement default handler (stand-alone model)
   }
   $addLight () {
+    // TODO: implement default handler (stand-alone model)
+  }
+  $moveLead (light, address, index, delta) {
+    // TODO: implement default handler (stand-alone model)
+  }
+  $moveLED (light, address, index, delta) {
     // TODO: implement default handler (stand-alone model)
   }
   get activeAddress () {
@@ -106,15 +116,24 @@ export default class PaperLights {
       this.addLayer(name, ((index || index === 0) ? (index + indexOffset++) : undefined))
     }
   }
-  addLED (x, y, address = null, light = null) {
+  addLED (point, address = null, light = null) {
     // it is ok if activeLight and activeAddress are not set here
     // it only matters that the $action does the right thing with them undefined
-    return this.$actions.addLED((light !== null ? light : this.activeLight), (address !== null ? address : this.activeAddress), { x, y })
+    return this.$actions.addLED(
+      (light !== null ? light : this.activeLight),
+      (address !== null ? address : this.activeAddress),
+      { x: point.x, y: point.y }
+    )
   }
-  addLead (x, y, address = null, index = null, light = null) {
+  addLead (point, address = null, index = null, light = null) {
     // it is ok if activeLight and activeAddress are not set here
     // it only matters that the $action does the right thing with them undefined
-    return this.$actions.addLead((light !== null ? light : this.activeLight), (address !== null ? address : this.activeAddress), index, { x, y })
+    return this.$actions.addLead(
+      (light !== null ? light : this.activeLight),
+      (address !== null ? address : this.activeAddress),
+      index,
+      { x: point.x, y: point.y }
+    )
   }
   addLight () {
     return this.$actions.addLight()
@@ -144,15 +163,43 @@ export default class PaperLights {
       return this.$layers[name]
     }
   }
+  hitTestAtPoint (point) {
+    if (this.assertPaper) {
+      return this.$paper.hitTest(point)
+    }
+  }
+  moveLead (delta, light, address, index) {
+    return this.$actions.moveLead(
+      (light !== null ? light : this.activeLight),
+      (address !== null ? address : this.activeAddress),
+      index,
+      { x: delta.x, y: delta.y }
+    )
+  }
+  moveLED (delta, light, address, index) {
+    return this.$actions.moveLED(
+      (light !== null ? light : this.activeLight),
+      (address !== null ? address : this.activeAddress),
+      index,
+      { x: delta.x, y: delta.y }
+    )
+  }
   normalizePoint (point) {
     if (this.$paper && this.$paper.view) {
-      const scaledPoint = {
+      return {
         x: (point.x / this.$scaling.x),
         y: (point.y / this.$scaling.y)
       }
-      return scaledPoint
     }
     return point
+  }
+  onLeadsAdded (light, address, index, leads) {
+    if (leads && leads.length) {
+      light = this.assertLight(light)
+      if (light) {
+        light.onLeadsAdded(address, index, leads)
+      }
+    }
   }
   onLedsAdded (light, address, LEDs) {
     if (LEDs && LEDs.length) {
@@ -162,12 +209,10 @@ export default class PaperLights {
       }
     }
   }
-  onLeadsAdded (light, address, index, leads) {
-    if (leads && leads.length) {
-      light = this.assertLight(light)
-      if (light) {
-        light.onLeadsAdded(address, index, leads)
-      }
+  onLedMoved (light, address, index, position) {
+    light = this.assertLight(light)
+    if (light) {
+      light.onLedMoved(address, index, position)
     }
   }
   onLightsAdded (lights) {

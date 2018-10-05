@@ -13,8 +13,14 @@ export default class PaperLight {
   get id () {
     return this.$model.id
   }
+  get leads () {
+    return this.$model.leads
+  }
   get LEDs () {
     return this.$model.LEDs
+  }
+  get light () {
+    return this.$model
   }
   get paperAddresses () {
     return Object.keys(this.$paperLEDs).sort((a, b) => (a - b))
@@ -35,14 +41,21 @@ export default class PaperLight {
         let linePointIndex = this.getLinePointIndex(address, index)
         if (!this.$paperLine) {
           this.$paperLine = new MultiLine()
+          this.$paperLine.setData({
+            light: this.light
+          })
           this.$paperLine.setStyle(this.theme.styleForLightLine)
         }
-        this.$paperLine.addMultiPoint(item, linePointIndex, stack)
+        this.$paperLine.addMultiPoint({
+          x: item.x,
+          y: item.y,
+          data: item.data
+        }, linePointIndex, stack)
       }
     }
   }
-  assertPaperAddress (address) {
-    if (!this.$paperLEDs.hasOwnProperty(address)) {
+  assertPaperAddress (address, create = true) {
+    if (!this.$paperLEDs.hasOwnProperty(address) && create) {
       if (this.assertPaperGroupLEDs()) {
         this.$paperLEDs[address] = {
           id: address,
@@ -76,11 +89,15 @@ export default class PaperLight {
         if (!paperLead.data) {
           paperLead.data = {}
         }
+        paperLead.data.light = this
+        paperLead.data.address = paperAddress
+        paperLead.data.lead = lead
+        paperLead.data.leadIndex = index
         return this.refreshPaperLead(paperLead, lead, address, index)
       }
     }
   }
-  generatePaperLED (LED, address) {
+  generatePaperLED (LED, address, index) {
     if (!PLD.isLED(LED)) {
       throw new TypeError('Invalid LED')
     }
@@ -90,36 +107,14 @@ export default class PaperLight {
         let paperLED = new paper.Shape.Circle(this.normalizePoint(LED), this.theme.get('LED-radius'))
         paperAddress.group.addChild(paperLED)
         paperAddress.LEDs.push(paperLED)
-        paperLED.data.address = paperAddress
         paperLED.data.light = this
+        paperLED.data.address = paperAddress
+        paperLED.data.LED = LED
+        paperLED.data.LEDindex = index
         this.theme.apply(this.theme.styleForLED, paperLED)
-        return this.refreshPaperLED(paperLED, LED, address)
+        return this.refreshPaperLED(paperLED, LED, address, index)
       }
     }
-  }
-  getLinePoint (index) {
-    const addresses = this.paperAddresses
-    let pointIndex = 0
-    for (let key of addresses) {
-      const paperAddress = this.$paperLEDs[key]
-      if ((pointIndex + paperAddress.leads.length) > index) {
-        // leads are rendered in reverse so leads[0] is always closest to the LED
-        return paperAddress.leads[(pointIndex + paperAddress.leads.length - index - 1)]
-      } else {
-        // one address may have multiple lead points
-        pointIndex += paperAddress.leads.length
-      }
-      if (paperAddress.LEDs.length) {
-        if (pointIndex === index) {
-          // returns the LEDs array - caller decides how to handle multi-points
-          return paperAddress.LEDs
-        } else {
-          // LEDs only ever hold 1 index on the line per address
-          pointIndex += 1
-        }
-      }
-    }
-    // checked all addresses and didn't reach index
   }
   getLinePointIndex (address = null, index = null) {
     // index === -1
@@ -142,6 +137,14 @@ export default class PaperLight {
     }
     return pointIndex
   }
+  getPaperLED (address, index) {
+    if (this.$PL.assertPaper()) {
+      const paperAddress = this.assertPaperAddress(address, false)
+      if (paperAddress && index >= 0 && index < paperAddress.LEDs.length) {
+        return paperAddress.LEDs[index]
+      }
+    }
+  }
   normalizePoint (point, toLocal = false) {
     // TODO: normalize a point
     return {
@@ -163,15 +166,27 @@ export default class PaperLight {
     }
   }
   onLedsAdded (address, LEDs) {
+    const index = this.light.LEDs[address].LEDs.length - LEDs.length
+    let offset = 0
     for (const LED of LEDs) {
       try {
-        const paperLED = this.generatePaperLED(LED, address)
+        const paperLED = this.generatePaperLED(LED, address, index + offset++)
         if (paperLED) {
           this.addPaperLinePoint(address, paperLED)
         }
       } catch (error) {
         // Bad LED
       }
+    }
+  }
+  onLedMoved (address, index, position) {
+    let paperLED = this.getPaperLED(address, index)
+    if (paperLED) {
+      paperLED.set({ position })
+    }
+    if (this.$paperLine) {
+      let lineIndex = this.getLinePointIndex(address)
+      this.$paperLine.setMultiPoint(lineIndex, index, position)
     }
   }
   refresh () {
@@ -197,7 +212,7 @@ export default class PaperLight {
     }
     return paperLead
   }
-  refreshPaperLED (paperLED, LED, address) {
+  refreshPaperLED (paperLED, LED, address, index) {
     if (!PLD.isLED(LED)) {
       throw new TypeError('Invalid LED')
     }
@@ -215,6 +230,7 @@ export default class PaperLight {
       paperAddress.LEDs.push(paperLED)
       paperLED.data.address = paperAddress
       paperLED.data.LED = LED
+      paperLED.data.LEDindex = index
     }
     return paperLED
   }

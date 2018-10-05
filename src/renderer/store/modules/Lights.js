@@ -146,6 +146,11 @@ const mutations = {
     // address is required to be explicitly set so subscribers know
     // concatenate to existing address
     light.LEDs[address].LEDs.push(...LEDs)
+  },
+  MOVE_LED (state, { light, address, index, point }) {
+    let LED = light.LEDs[address].LEDs[index]
+    Vue.set(LED, 'x', point.x)
+    Vue.set(LED, 'y', point.y)
   }
 }
 
@@ -233,6 +238,17 @@ const actions = {
         commit('DELETE_LIGHT', oldLight)
       }
       return oldLight
+    }
+  },
+  moveLED ({ commit, getters }, { light: { id, ..._light }, address, index, delta }) {
+    const light = getters.light(id)
+    if (light && address >= 0 && address < light.LEDs.length && index >= 0 && index < light.LEDs[address].LEDs.length) {
+      const LED = light.LEDs[address].LEDs[index]
+      const point = {
+        x: LED.x + delta.x,
+        y: LED.y + delta.y
+      }
+      commit('MOVE_LED', { light, address, index, point })
     }
   },
   setLight ({ commit }, light) {
