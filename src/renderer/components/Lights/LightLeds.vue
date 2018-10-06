@@ -30,8 +30,8 @@
                     >
                       <v-badge
                         bottom
-                        color="success"
-                        :value="address.LEDs.length > 1"
+                        :color="address.LEDs.length ? 'success' : 'error'"
+                        :value="address.LEDs.length !== 1"
                       >
                         <span slot="badge">{{address.LEDs.length}}</span>
                         {{offsetAddress(addressIndex, true)}}

@@ -17,7 +17,7 @@ function calculateAveragePoint (points = []) {
 }
 function shiftObjectKeys (object, after, amount) {
   const keys = Object.keys(object)
-    .filter(value => (amount < 0) ? (parseInt(value) < after) : (parseInt(value) > after))
+    .filter(value => (parseInt(value) > after))
     .sort((a, b) => (amount < 0) ? (a - b) : (b - a))
   for (let key of keys) {
     object[parseInt(key) + amount] = object[key]
@@ -70,6 +70,7 @@ export default class MultiLine extends Group {
       } else {
         // insert new at index
         this.data.multiPoints.splice(index, 0, multiPoint)
+        shiftObjectKeys(this.data.multiPointLines, index, 1)
       }
       if (addLinePoint) {
         // creating a new multiPoint
@@ -89,7 +90,6 @@ export default class MultiLine extends Group {
             this.data.mainLine.add(multiPoint[0])
           } else {
             this.data.mainLine.insert(index, multiPoint[0])
-            shiftObjectKeys(this.data.multiPointLines, index, 1)
           }
         }
       }
@@ -123,35 +123,47 @@ export default class MultiLine extends Group {
           }
         }
         // check if it is consecutive multi-entry multiPoints
-        if (Array.isArray(multiPoint1) && multiPoint1.length > 1 && Array.isArray(multiPoint2) && multiPoint2.length > 1) {
-          // calculate an average point to connect each side to (meet at a single mid-point)
-          const multiJoinPoint = new Point(calculateAveragePoint([ calculateAveragePoint(multiPoint1), calculateAveragePoint(multiPoint2) ]))
-          if (Array.isArray(nextPoint)) {
-            // next point is also a multi-point
-            // insert a new multi-joint-point to connect them
-            this.data.multiPoints.splice(index + (direction > 0 ? 1 : 0), 0, multiJoinPoint)
-            this.data.mainLine.insert(index + (direction > 0 ? 1 : 0), multiJoinPoint)
-            if (direction < 0) {
-              // added before index (but after nextIndex)
-              shiftObjectKeys(this.data.multiPointLines, index - 1, 1)
-              index++
-            } else {
-              // added after index (but before nextIndex)
-              shiftObjectKeys(this.data.multiPointLines, index, 1)
-              nextIndex++
+        if (Array.isArray(multiPoint1) && Array.isArray(multiPoint2)) {
+          if (multiPoint1.length > 1 && multiPoint2.length > 1) {
+            // calculate an average point to connect each side to (meet at a single mid-point)
+            const multiJoinPoint = new Point(calculateAveragePoint([ calculateAveragePoint(multiPoint1), calculateAveragePoint(multiPoint2) ]))
+            if (Array.isArray(nextPoint)) {
+              // next point is also a multi-point
+              // insert a new multi-joint-point to connect them
+              this.data.multiPoints.splice(index + (direction > 0 ? 1 : 0), 0, multiJoinPoint)
+              this.data.mainLine.insert(index + (direction > 0 ? 1 : 0), multiJoinPoint)
+              if (direction < 0) {
+                // added before index (but after nextIndex)
+                shiftObjectKeys(this.data.multiPointLines, index - 1, 1)
+                index++
+              } else {
+                // added after index (but before nextIndex)
+                shiftObjectKeys(this.data.multiPointLines, index, 1)
+                nextIndex++
+              }
+            } else if (nextPoint.constructor.name === 'Point') {
+              // next point is a multi-joint-point
+              // refresh it with new average point
+              nextPoint.set(multiJoinPoint)
+              this.data.mainLine.segments[(index + direction)].point.set(multiJoinPoint)
             }
-          } else if (nextPoint.constructor.name === 'Point') {
-            // next point is a multi-joint-point
-            // refresh it with new average point
-            nextPoint.set(multiJoinPoint)
-            this.data.mainLine.segments[(index + direction)].point.set(multiJoinPoint)
+          } else if ((multiPoint1.length <= 1 || multiPoint2.length <= 1) && nextPoint.constructor.name === 'Point') {
+            this.data.multiPoints.splice(index + direction, 1)
+            this.data.mainLine.removeSegment(index + direction)
+            if (direction < 0) {
+              shiftObjectKeys(this.data.multiPointLines, index - 1, -1)
+              index--
+            } else {
+              shiftObjectKeys(this.data.multiPointLines, index, -1)
+              nextIndex--
+            }
           }
         }
-        // refresh multi-point lines from lower point to upper point
-        this.checkMultiPointLines((direction < 0 ? nextIndex : index), 1)
-        // refresh multi-point lines to upper point from lower point
-        this.checkMultiPointLines((direction < 0 ? index : nextIndex), -1)
       }
+      // refresh multi-point lines from lower point to upper point
+      this.checkMultiPointLines((direction < 0 ? nextIndex : index), 1)
+      // refresh multi-point lines to upper point from lower point
+      this.checkMultiPointLines((direction < 0 ? index : nextIndex), -1)
       return index
     }
     this.checkMultiPointLines = (index, direction) => {
@@ -160,7 +172,12 @@ export default class MultiLine extends Group {
       direction = (direction < 0 ? -1 : 1) // ensure always a factor of 1
       const slot = (direction < 0 ? 'to' : 'from') // choose which of the 2 sets
       let nextIndex = index + direction
-      // validate requested indexes
+      if (((index === 0 && direction < 0) || (index === this.data.multiPoints.length - 1 && direction > 0)) && this.data.multiPointLines[index]) {
+        const removedLines = this.data.multiPointLines[index][slot].splice(0, this.data.multiPointLines[index][slot].length)
+        for (let removedLine of removedLines) {
+          removedLine.remove()
+        }
+      }
       if (index >= 0 && index < this.data.multiPoints.length && nextIndex >= 0 && nextIndex < this.data.multiPoints.length) {
         // select the points
         const multiPoint = this.data.multiPoints[index]
@@ -172,40 +189,49 @@ export default class MultiLine extends Group {
         }
         // is there more than one multiPoint entry and a point to connect them to?
         // a multiPoint with one entry is already handled by the mainLine
-        if (Array.isArray(multiPoint) && multiPoint.length > 1 && nextPoint && nextPoint.constructor.name === 'Point') {
-          // a fast reference to the multiPointLines (make sure index stays in sync!)
-          if (!this.data.multiPointLines[index]) {
-            this.data.multiPointLines[index] = {
-              to: [],
-              from: []
+        if (Array.isArray(multiPoint) && multiPoint.length) {
+          if (this.data.multiPointLines[index] && this.data.multiPointLines[index][slot].length > multiPoint.length - 1) {
+            const extraLineCount = this.data.multiPointLines[index][slot].length - multiPoint.length + 1
+            const removedLines = this.data.multiPointLines[index][slot].splice(-extraLineCount, extraLineCount)
+            for (let removedLine of removedLines) {
+              removedLine.remove()
             }
           }
-          // make multiPointLines linking each multiPoint entry to the nextPoint
-          // (multiPoint[0] is on the mainLine so it is skipped)
-          for (let i = 1; i < multiPoint.length; i++) {
-            // direction < 0 draws the line: nextPoint -> multiPoint
-            // direction > 0 draws the line: multiPoint -> nextPoint
-            const point1 = (direction < 0) ? nextPoint : multiPoint[i]
-            const point2 = (direction < 0) ? multiPoint[i] : nextPoint
-            if (i > this.data.multiPointLines[index][slot].length) {
-              // not enough multiPointLines, make a new one
-              const multiLine = new Path.Line({
-                from: point1,
-                to: point2
-              })
-              multiLine.data = {
-                ...this.data.data,
-                multiSegment: index - (direction < 0 ? this.getIndexOffset(index) : 0),
-                multiIndex: i
+          if (multiPoint.length > 1 && nextPoint && nextPoint.constructor.name === 'Point') {
+            // a fast reference to the multiPointLines (make sure index stays in sync!)
+            if (!this.data.multiPointLines[index]) {
+              this.data.multiPointLines[index] = {
+                to: [],
+                from: []
               }
-              this.data.multiPointLines[index][slot].push(multiLine)
-              this.data.multiLines.addChild(multiLine)
-              multiLine.style = this.data.style
-            } else {
-              // refresh an existing multiPointLine
-              const multiLine = this.data.multiPointLines[index][slot][i - 1]
-              multiLine.segments[0].point.set(point1)
-              multiLine.segments[1].point.set(point2)
+            }
+            // make multiPointLines linking each multiPoint entry to the nextPoint
+            // (multiPoint[0] is on the mainLine so it is skipped)
+            for (let i = 1; i < multiPoint.length; i++) {
+              // direction < 0 draws the line: nextPoint -> multiPoint
+              // direction > 0 draws the line: multiPoint -> nextPoint
+              const point1 = (direction < 0) ? nextPoint : multiPoint[i]
+              const point2 = (direction < 0) ? multiPoint[i] : nextPoint
+              if (i > this.data.multiPointLines[index][slot].length) {
+                // not enough multiPointLines, make a new one
+                const multiLine = new Path.Line({
+                  from: point1,
+                  to: point2
+                })
+                multiLine.data = {
+                  ...this.data.data,
+                  multiSegment: index - (direction < 0 ? this.getIndexOffset(index) : 0),
+                  multiIndex: i
+                }
+                this.data.multiPointLines[index][slot].push(multiLine)
+                this.data.multiLines.addChild(multiLine)
+                multiLine.style = this.data.style
+              } else {
+                // refresh an existing multiPointLine
+                const multiLine = this.data.multiPointLines[index][slot][i - 1]
+                multiLine.segments[0].point.set(point1)
+                multiLine.segments[1].point.set(point2)
+              }
             }
           }
         }
@@ -242,6 +268,37 @@ export default class MultiLine extends Group {
           for (let prop in object) {
             item[key][prop] = object[prop]
           }
+        }
+      }
+    }
+    this.removeMultiPoint = (index, multiIndex) => {
+      // localize index (accounts for auto-injected points)
+      index += this.getIndexOffset(index)
+      if (index >= 0 && index < this.data.multiPoints.length) {
+        // look up the multiPoint entry
+        let multiPoint = this.data.multiPoints[index]
+        if (Array.isArray(multiPoint) && multiIndex >= 0 && multiIndex < multiPoint.length) {
+          // remove the multiPoint entry
+          multiPoint.splice(multiIndex, 1)
+          // update the mainLine
+          if (multiIndex === 0 && this.data.mainLine && this.data.mainLine.segments.length && index < this.data.mainLine.segments.length) {
+            this.data.mainLine.removeSegment(index)
+            if (multiPoint.length) {
+              this.data.mainLine.insert(index, multiPoint[0])
+            }
+          }
+          if (!multiPoint.length) {
+            this.data.multiPoints.splice(index, 1)
+            shiftObjectKeys(this.data.multiPointLines, index, -1)
+            if (index > 0) {
+              index--
+            }
+          }
+          // update the multiPointLines
+          // check multi-connection before next index
+          index = this.checkMultiPoint(index, -1)
+          // check the multi-connection after previous index
+          index = this.checkMultiPoint(index, 1)
         }
       }
     }

@@ -17,6 +17,8 @@ export default class PaperLights {
         addLead: this.$addLead,
         addLED: this.$addLED,
         addLight: this.$addLight,
+        deleteLead: this.$deleteLead,
+        deleteLED: this.$deleteLED,
         moveLead: this.$moveLead,
         moveLED: this.$moveLED
       },
@@ -47,6 +49,12 @@ export default class PaperLights {
     // TODO: implement default handler (stand-alone model)
   }
   $addLight () {
+    // TODO: implement default handler (stand-alone model)
+  }
+  $deleteLead (light, address, index) {
+    // TODO: implement default handler (stand-alone model)
+  }
+  $deleteLED (light, address, index) {
     // TODO: implement default handler (stand-alone model)
   }
   $moveLead (light, address, index, delta) {
@@ -155,6 +163,20 @@ export default class PaperLights {
       return this.$paper
     }
   }
+  deleteLead (light, address, index) {
+    return this.$actions.deleteLead(
+      (light !== null ? light : this.activeLight),
+      (address !== null ? address : this.activeAddress),
+      index
+    )
+  }
+  deleteLED (light, address, index) {
+    return this.$actions.deleteLED(
+      (light !== null ? light : this.activeLight),
+      (address !== null ? address : this.activeAddress),
+      index
+    )
+  }
   getLayer (name = null) {
     if (name === null) {
       name = this.$state.activeLayer
@@ -207,6 +229,24 @@ export default class PaperLights {
       if (light) {
         light.onLedsAdded(address, LEDs)
       }
+    }
+  }
+  onLeadDeleted (light, address, index) {
+    light = this.assertLight(light)
+    if (light) {
+      light.onLeadDeleted(address, index)
+    }
+  }
+  onLedDeleted (light, address, index) {
+    light = this.assertLight(light)
+    if (light) {
+      light.onLedDeleted(address, index)
+    }
+  }
+  onLeadMoved (light, address, index, position) {
+    light = this.assertLight(light)
+    if (light) {
+      light.onLeadMoved(address, index, position)
     }
   }
   onLedMoved (light, address, index, position) {

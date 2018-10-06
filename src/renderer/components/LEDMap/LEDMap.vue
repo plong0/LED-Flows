@@ -73,6 +73,8 @@
           addLead: this.addLead,
           addLED: this.addLED,
           addLight: this.addLight,
+          deleteLead: this.deleteLead,
+          deleteLED: this.deleteLED,
           moveLead: this.moveLead,
           moveLED: this.moveLED
         },
@@ -130,10 +132,17 @@
         }
         return 'secondary'
       },
+      deleteLead (light, address, index) {
+        this.$store.dispatch('Lights/deleteLead', { light, address, index })
+      },
+      deleteLED (light, address, index) {
+        this.$store.dispatch('Lights/deleteLED', { light, address, index })
+      },
       isActiveTool (name) {
         return (name.startsWith('Tool') && this.lightMap && this.lightMap.activeTool === name.substr(5))
       },
       moveLead (light, address, index, delta) {
+        this.$store.dispatch('Lights/moveLead', { light, address, index, delta })
       },
       moveLED (light, address, index, delta) {
         this.$store.dispatch('Lights/moveLED', { light, address, index, delta })
@@ -144,11 +153,20 @@
       onLeadsAdded (light, address, index, leads) {
         this.lightMap.onLeadsAdded(light, address, index, leads)
       },
-      onLightActivated (light) {
-        this.lightMap.activateLight(light)
+      onLeadDeleted (light, address, index) {
+        this.lightMap.onLeadDeleted(light, address, index)
+      },
+      onLedDeleted (light, address, index) {
+        this.lightMap.onLedDeleted(light, address, index)
+      },
+      onLeadMoved (light, address, index, position) {
+        this.lightMap.onLeadMoved(light, address, index, position)
       },
       onLedMoved (light, address, index, position) {
         this.lightMap.onLedMoved(light, address, index, position)
+      },
+      onLightActivated (light) {
+        this.lightMap.activateLight(light)
       },
       refreshCanvasSize () {
         if (this.$refs.canvasDummy) {
@@ -168,8 +186,17 @@
           case 'Lights/ADD_LEDS':
             this.onLedsAdded(payload.light, payload.address, payload.LEDs)
             break
+          case 'Lights/DELETE_LEAD':
+            this.onLeadDeleted(payload.light, payload.address, payload.index)
+            break
+          case 'Lights/DELETE_LED':
+            this.onLedDeleted(payload.light, payload.address, payload.index)
+            break
           case 'Lights/ACTIVATE_LIGHT':
             this.onLightActivated(payload)
+            break
+          case 'Lights/MOVE_LEAD':
+            this.onLeadMoved(payload.light, payload.address, payload.index, payload.point)
             break
           case 'Lights/MOVE_LED':
             this.onLedMoved(payload.light, payload.address, payload.index, payload.point)

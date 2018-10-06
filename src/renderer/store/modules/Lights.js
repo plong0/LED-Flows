@@ -147,6 +147,20 @@ const mutations = {
     // concatenate to existing address
     light.LEDs[address].LEDs.push(...LEDs)
   },
+  DELETE_ADDRESS (state, { light, address }) {
+    Vue.delete(light.LEDs, address)
+  },
+  DELETE_LEAD (state, { light, address, index }) {
+    light.LEDs[address].leads.splice(index, 1)
+  },
+  DELETE_LED (state, { light, address, index }) {
+    light.LEDs[address].LEDs.splice(index, 1)
+  },
+  MOVE_LEAD (state, { light, address, index, point }) {
+    let lead = light.LEDs[address].leads[index]
+    Vue.set(lead, 'x', point.x)
+    Vue.set(lead, 'y', point.y)
+  },
   MOVE_LED (state, { light, address, index, point }) {
     let LED = light.LEDs[address].LEDs[index]
     Vue.set(LED, 'x', point.x)
@@ -231,6 +245,24 @@ const actions = {
     commit('ADD_LIGHT', light)
     return light
   },
+  deleteLead ({ commit, getters }, { light: { id, ..._light }, address, index }) {
+    const light = getters.light(id)
+    if (light && address >= 0 && address < light.LEDs.length && index >= 0 && index < light.LEDs[address].leads.length) {
+      commit('DELETE_LEAD', { light, address, index })
+      if (!light.LEDs[address].LEDs.length && !light.LEDs[address].leads.length) {
+        commit('DELETE_ADDRESS', { light, address })
+      }
+    }
+  },
+  deleteLED ({ commit, getters }, { light: { id, ..._light }, address, index }) {
+    const light = getters.light(id)
+    if (light && address >= 0 && address < light.LEDs.length && index >= 0 && index < light.LEDs[address].LEDs.length) {
+      commit('DELETE_LED', { light, address, index })
+      if (!light.LEDs[address].LEDs.length && !light.LEDs[address].leads.length) {
+        commit('DELETE_ADDRESS', { light, address })
+      }
+    }
+  },
   deleteLight ({ commit, getters }, light) {
     if (light && light.hasOwnProperty('id')) {
       const oldLight = getters.light(light.id)
@@ -238,6 +270,17 @@ const actions = {
         commit('DELETE_LIGHT', oldLight)
       }
       return oldLight
+    }
+  },
+  moveLead ({ commit, getters }, { light: { id, ..._light }, address, index, delta }) {
+    const light = getters.light(id)
+    if (light && address >= 0 && address < light.LEDs.length && index >= 0 && index < light.LEDs[address].leads.length) {
+      const lead = light.LEDs[address].leads[index]
+      const point = {
+        x: lead.x + delta.x,
+        y: lead.y + delta.y
+      }
+      commit('MOVE_LEAD', { light, address, index, point })
     }
   },
   moveLED ({ commit, getters }, { light: { id, ..._light }, address, index, delta }) {

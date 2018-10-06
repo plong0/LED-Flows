@@ -179,6 +179,26 @@ export default class PaperLight {
       }
     }
   }
+  onLeadDeleted (address, index, position) {
+  }
+  onLedDeleted (address, index, position) {
+    let paperLED = this.getPaperLED(address, index)
+    if (paperLED) {
+      paperLED.remove()
+      this.$paperLEDs[address].LEDs.splice(index, 1)
+      this.refreshPaperAddress(address)
+    }
+    if (this.$paperLine) {
+      let lineIndex = this.getLinePointIndex(address)
+      this.$paperLine.removeMultiPoint(lineIndex, index)
+    }
+  }
+  onLeadMoved (address, index, position) {
+    if (this.$paperLine) {
+      let lineIndex = this.getLinePointIndex(address, index)
+      this.$paperLine.setMultiPoint(lineIndex, 0, position)
+    }
+  }
   onLedMoved (address, index, position) {
     let paperLED = this.getPaperLED(address, index)
     if (paperLED) {
@@ -191,6 +211,23 @@ export default class PaperLight {
   }
   refresh () {
     // TODO: refresh the PaperLEDs
+  }
+  refreshPaperAddress (address) {
+    const paperAddress = this.assertPaperAddress(address, false)
+    if (!paperAddress.LEDs.length && !paperAddress.leads.length) {
+      this.$paperLEDs[address].group.remove()
+      delete this.$paperLEDs[address]
+      this.shiftPaperAddresses(address, -1)
+    } else {
+      for (let i = 0; i < paperAddress.LEDs.length; i++) {
+        let paperLED = paperAddress.LEDs[i]
+        paperLED.data.LEDindex = i
+      }
+      for (let i = 0; i < paperAddress.leads.length; i++) {
+        let paperLED = paperAddress.leads[i]
+        paperLED.data.leadIndex = i
+      }
+    }
   }
   refreshPaperLead (paperLead, lead, address, index) {
     if (!PLD.isLead(lead)) {
@@ -233,5 +270,18 @@ export default class PaperLight {
       paperLED.data.LEDindex = index
     }
     return paperLED
+  }
+  shiftPaperAddresses (after, amount = 1) {
+    const keys = Object.keys(this.$paperLEDs)
+      .filter(value => (parseInt(value) > after))
+      .sort((a, b) => (amount < 0) ? (a - b) : (b - a))
+    for (let key of keys) {
+      const newKey = parseInt(key) + amount
+      this.$paperLEDs[newKey] = this.$paperLEDs[key]
+      this.$paperLEDs[newKey].id = newKey
+      this.$paperLEDs[newKey].group.name = `light-leds-address-${this.id}-${newKey}`
+      this.$paperLEDs[key] = undefined
+      delete this.$paperLEDs[key]
+    }
   }
 }
