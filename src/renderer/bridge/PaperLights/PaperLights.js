@@ -100,8 +100,9 @@ export default class PaperLights {
   activateLight (light = null, address = null) {
     this.$actions.activateLight(light, address)
   }
-  activateTool (name = 'default') {
+  activateTool (name = 'default', params = {}) {
     if (this.$tools.hasOwnProperty(name) && !this.$tools[name].isActive() && this.assertPaper()) {
+      this.$tools[name].setParams(params)
       this.$tools[name].activate()
       this.$state.activeTool = name
     }

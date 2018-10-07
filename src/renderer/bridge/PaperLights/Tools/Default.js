@@ -55,9 +55,20 @@ export default class Default extends PaperLightTool {
       },
       onMouseUp: (event) => {
         if ((event.timeStamp - this.$state.lastTime.mouseUp) < this.$doubleClickTime && !this.isStale('mouseUp', ['mouseDrag', 'mouseMove'])) {
+          // double click
           if (this.$state.activeLED) {
             const LED = this.$state.activeLED.data
             this.$PL.deleteLED(LED.light, LED.address.id, LED.LEDindex)
+          }
+        } else if (!this.isStale('mouseDown', ['mouseDrag', 'mouseMove'])) {
+          // single click
+          if (this.$state.activeLED) {
+            const LED = this.$state.activeLED.data
+            if (LED.address.id === (LED.light.LEDs.length - 1)) {
+              this.$PL.activateTool('AddLed')
+            } else if (LED.address.id === 0) {
+              this.$PL.activateTool('AddLed', { toStart: true })
+            }
           }
         }
         if (this.$state.activeLED) {

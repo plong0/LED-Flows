@@ -5,6 +5,7 @@ export default class PaperLightTool extends Tool {
     super()
     this.$PL = paperLights
     this.active = false
+    this.params = {}
     this.baseEvents = {
       onMouseUp: (event) => {
         if (event.event.button === 2) {
@@ -50,5 +51,8 @@ export default class PaperLightTool extends Tool {
   }
   isActive () {
     return this.active
+  }
+  setParams (params) {
+    this.params = params
   }
 }
