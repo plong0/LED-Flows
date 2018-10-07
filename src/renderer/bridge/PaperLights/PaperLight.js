@@ -116,8 +116,66 @@ export default class PaperLight {
       }
     }
   }
+  getLinePoint (index = null) {
+    // if index < 0, return from end of line (with -1 as origin)
+    if (index === null) {
+      index = -1
+    }
+    const reverse = (index < 0)
+    const addresses = Object.keys(this.$paperLEDs).sort((a, b) => (reverse ? (b - a) : (a - b)))
+    let pointIndex = 0
+    if (reverse) {
+      index = -index - 1
+    }
+    for (let key of addresses) {
+      const paperAddress = this.$paperLEDs[key]
+      const addressLength = paperAddress.leads.length + (paperAddress.LEDs.length ? 1 : 0)
+      if (pointIndex + addressLength >= index) {
+        // match somewhere in this address
+        let offset = index - pointIndex
+        let returnIndex = null
+        if (reverse) {
+          if (offset === 0 && paperAddress.LEDs.length) {
+            // return the LEDs
+            returnIndex = -1
+          } else {
+            if (!paperAddress.LEDs.length) {
+              offset++
+            }
+            if (offset <= paperAddress.leads.length && paperAddress.leads.length) {
+              returnIndex = paperAddress.leads.length - offset
+            }
+          }
+        } else {
+          // forward
+          if (offset < paperAddress.leads.length) {
+            // return a lead
+            returnIndex = offset
+          } else {
+            // return the LEDs
+            returnIndex = -1
+          }
+        }
+        if (returnIndex === -1 && paperAddress.LEDs.length) {
+          // return the LEDs
+          return {
+            address: paperAddress,
+            LEDs: paperAddress.LEDs,
+            points: paperAddress.LEDs.map((LED) => ({ x: LED.position.x, y: LED.position.y }))
+          }
+        } else if (returnIndex !== null && returnIndex > 0 && returnIndex < paperAddress.leads.length) {
+          // return a lead
+          return {
+            address: paperAddress,
+            lead: paperAddress.leads[returnIndex],
+            points: [{ x: paperAddress.leads[returnIndex].x, y: paperAddress.leads[returnIndex].y }]
+          }
+        }
+      }
+      pointIndex += addressLength
+    }
+  }
   getLinePointIndex (address = null, index = null) {
-    // index === -1
     // index === null gets index for LEDs
     const addresses = this.paperAddresses
     let pointIndex = 0
