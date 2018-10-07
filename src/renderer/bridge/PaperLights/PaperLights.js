@@ -38,7 +38,7 @@ export default class PaperLights {
     }
     this.$layers = {}
     this.$lights = {}
-    this.addLayers(['default', 'LightLines', 'LEDs'])
+    this.addLayers(['default', 'LightLines', 'LightLines-Active', 'LEDs', 'LEDs-Active'])
     this.activateLayer()
     this.activateTool()
     this.onLightsAdded(lights)
@@ -72,6 +72,14 @@ export default class PaperLights {
   }
   get activeLight () {
     return this.$state.activeLight
+  }
+  get activePaperLight () {
+    try {
+      return this.assertLight(this.activeLight, false)
+    } catch (Error) {
+      // no light active (or an invalid one)
+    }
+    return null
   }
   get activeTool () {
     return this.$state.activeTool
@@ -147,11 +155,11 @@ export default class PaperLights {
   addLight () {
     return this.$actions.addLight()
   }
-  assertLight (light) {
+  assertLight (light, create = true) {
     if (!PLD.isLight(light)) {
       throw new TypeError('Invalid Light')
     }
-    if (!this.$lights[light.id]) {
+    if (!this.$lights[light.id] && create) {
       this.$lights[light.id] = new PaperLight(this, {
         model: light
       })
