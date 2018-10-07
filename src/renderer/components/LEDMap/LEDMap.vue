@@ -56,7 +56,7 @@
         }
       },
       ...mapGetters({
-        activeLight: 'Lights/activeLight',
+        activeLight: 'UI/activeLight',
         lights: 'Lights/lights'
       })
     },
@@ -92,7 +92,7 @@
     methods: {
       activateLight (light = null, address = null) {
         if ((light && (!this.activeLight || light.id !== this.activeLight.id)) || (!light && this.activeLight)) {
-          this.$store.dispatch('Lights/activateLight', light)
+          this.$store.dispatch('UI/activateLight', light)
         }
       },
       activateTool (name) {
@@ -128,7 +128,7 @@
       },
       addLight () {
         return this.$store.dispatch('Lights/createLight').then(light => {
-          this.$store.dispatch('Lights/activateLight', light)
+          this.$store.dispatch('UI/activateLight', light)
           return light
         })
       },
@@ -198,14 +198,14 @@
           case 'Lights/DELETE_LED':
             this.onLedDeleted(payload.light, payload.address, payload.index)
             break
-          case 'Lights/ACTIVATE_LIGHT':
-            this.onLightActivated(payload)
-            break
           case 'Lights/MOVE_LEAD':
             this.onLeadMoved(payload.light, payload.address, payload.index, payload.point)
             break
           case 'Lights/MOVE_LED':
             this.onLedMoved(payload.light, payload.address, payload.index, payload.point)
+            break
+          case 'UI/ACTIVATE_LIGHT':
+            this.onLightActivated(payload)
             break
         }
       }

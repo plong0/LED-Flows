@@ -140,11 +140,11 @@
         this.loadLight(light ? light.id : null)
       },
       selectLight (lightID) {
-        this.$store.dispatch('Lights/activateLight', { id: lightID })
+        this.$store.dispatch('UI/activateLight', { id: lightID })
       },
       storeUpdated ({ type, payload }, state) {
         switch (type) {
-          case 'Lights/ACTIVATE_LIGHT':
+          case 'UI/ACTIVATE_LIGHT':
             this.onLightActivated(payload)
             break
         }

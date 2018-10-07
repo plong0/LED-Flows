@@ -1,14 +1,10 @@
 import Vue from 'vue'
 
 const state = {
-  active: {
-    light: null
-  },
   lights: {}
 }
 
 const getters = {
-  activeLight: (state) => state.active.light,
   addressCount: (state, getters) => (id) => {
     const light = getters.light(id)
     if (light) {
@@ -112,9 +108,6 @@ const getters = {
 }
 
 const mutations = {
-  ACTIVATE_LIGHT (state, light) {
-    Vue.set(state.active, 'light', light)
-  },
   ADD_LIGHT (state, light) {
     Vue.set(state.lights, light.id, light)
   },
@@ -169,15 +162,6 @@ const mutations = {
 }
 
 const actions = {
-  activateLight ({ commit, getters }, light = null) {
-    if (light === null || (light && light.hasOwnProperty('id'))) {
-      if (light !== null) {
-        light = getters.light(light.id)
-      }
-      commit('ACTIVATE_LIGHT', light, light === null)
-      return light
-    }
-  },
   addLead ({ dispatch }, { light, lead = { x: 0, y: 0 }, address = -1, index = -1 }) {
     return dispatch('addLeads', { light, address, index, leads: [lead] })
   },
