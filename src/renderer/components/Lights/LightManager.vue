@@ -118,7 +118,10 @@
         return ''
       },
       loadLight (lightID) {
-        if (this.light !== null) {
+        if (lightID === null) {
+          this.lightID = null
+          this.activeID = null
+        } else if (this.light !== null) {
           // make a transition between lights by clearing it, then setting it on next tick
           this.lightID = null
           if (lightID !== null) {

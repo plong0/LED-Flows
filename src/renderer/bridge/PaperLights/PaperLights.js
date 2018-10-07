@@ -14,6 +14,7 @@ export default class PaperLights {
     this.$PLT = new PaperLightsTheme(theme)
     this.$actions = {
       ...{
+        activateLight: this.$activateLight,
         addLead: this.$addLead,
         addLED: this.$addLED,
         addLight: this.$addLight,
@@ -41,6 +42,9 @@ export default class PaperLights {
     this.activateLayer()
     this.activateTool()
     this.onLightsAdded(lights)
+  }
+  $activateLight (light = null, address = null) {
+    // TODO: implement default handler (stand-alone model)
   }
   $addLED (light, address, LED) {
     // TODO: implement default handler (stand-alone model)
@@ -94,11 +98,7 @@ export default class PaperLights {
     }
   }
   activateLight (light = null, address = null) {
-    if (this.$state.activeLight && (!light || this.$state.activeLight.id !== light.id)) {
-      this.activateTool()
-    }
-    this.$state.activeLight = light
-    this.$state.activeAddress = address
+    this.$actions.activateLight(light, address)
   }
   activateTool (name = 'default') {
     if (this.$tools.hasOwnProperty(name) && !this.$tools[name].isActive() && this.assertPaper()) {
@@ -214,6 +214,13 @@ export default class PaperLights {
       }
     }
     return point
+  }
+  onLightActivated (light = null, address = null) {
+    if (this.$state.activeLight && (!light || this.$state.activeLight.id !== light.id)) {
+      this.activateTool()
+    }
+    this.$state.activeLight = light
+    this.$state.activeAddress = address
   }
   onLeadsAdded (light, address, index, leads) {
     if (leads && leads.length) {

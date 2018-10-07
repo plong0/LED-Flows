@@ -31,9 +31,14 @@ export default class Default extends PaperLightTool {
         // console.log(`[Default Tool] onMouseDown ->`, event, hit)
         this.$state.activeLED = null
         if (hit && hit.item) {
+          if (hit.item.data && hit.item.data.light) {
+            this.$PL.activateLight(hit.item.data.light)
+          }
           if (hit.item.data && hit.item.data.LED) {
             this.$state.activeLED = hit.item
           }
+        } else {
+          this.$PL.activateLight()
         }
         this.$state.lastTime.mouseDown = event.timeStamp
       },

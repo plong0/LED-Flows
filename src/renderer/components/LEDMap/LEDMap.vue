@@ -70,6 +70,7 @@
       this.lightMap = new PaperLights({
         canvas: this.$refs.canvas,
         actions: {
+          activateLight: this.activateLight,
           addLead: this.addLead,
           addLED: this.addLED,
           addLight: this.addLight,
@@ -89,6 +90,11 @@
       })
     },
     methods: {
+      activateLight (light = null, address = null) {
+        if ((light && (!this.activeLight || light.id !== this.activeLight.id)) || (!light && this.activeLight)) {
+          this.$store.dispatch('Lights/activateLight', light)
+        }
+      },
       activateTool (name) {
         this.lightMap.activateTool(name)
       },
@@ -166,7 +172,7 @@
         this.lightMap.onLedMoved(light, address, index, position)
       },
       onLightActivated (light) {
-        this.lightMap.activateLight(light)
+        this.lightMap.onLightActivated(light)
       },
       refreshCanvasSize () {
         if (this.$refs.canvasDummy) {

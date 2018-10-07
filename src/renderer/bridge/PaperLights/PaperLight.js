@@ -89,7 +89,7 @@ export default class PaperLight {
         if (!paperLead.data) {
           paperLead.data = {}
         }
-        paperLead.data.light = this
+        paperLead.data.light = this.$model
         paperLead.data.address = paperAddress
         paperLead.data.lead = lead
         paperLead.data.leadIndex = index
@@ -107,7 +107,7 @@ export default class PaperLight {
         let paperLED = new paper.Shape.Circle(this.normalizePoint(LED), this.theme.get('LED-radius'))
         paperAddress.group.addChild(paperLED)
         paperAddress.LEDs.push(paperLED)
-        paperLED.data.light = this
+        paperLED.data.light = this.$model
         paperLED.data.address = paperAddress
         paperLED.data.LED = LED
         paperLED.data.LEDindex = index
