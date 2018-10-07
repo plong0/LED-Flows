@@ -70,7 +70,7 @@ export default class MultiLine extends Group {
       } else {
         // insert new at index
         this.data.multiPoints.splice(index, 0, multiPoint)
-        shiftObjectKeys(this.data.multiPointLines, index, 1)
+        shiftObjectKeys(this.data.multiPointLines, index - 1, 1)
       }
       if (addLinePoint) {
         // creating a new multiPoint

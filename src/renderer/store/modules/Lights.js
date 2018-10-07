@@ -122,14 +122,6 @@ const mutations = {
       Vue.set(light, prop, updates[prop])
     }
   },
-  FILL_ADDRESSES (state, { light, upTo }) {
-    // append as many empty address arrays as needed to have (upTo + 1) entries (counting starts at 0 and upTo is a target address)
-    const newLEDs = Array(1 + upTo - light.LEDs.length).fill().map(() => ({
-      leads: [],
-      LEDs: []
-    }))
-    light.LEDs.push(...newLEDs)
-  },
   ADD_LEADS (state, { light, leads, address, index }) {
     // address is required to be explicitly set so subscribers know
     // concatenate to existing address
@@ -149,6 +141,14 @@ const mutations = {
   DELETE_LED (state, { light, address, index }) {
     light.LEDs[address].LEDs.splice(index, 1)
   },
+  FILL_ADDRESSES (state, { light, upTo }) {
+    // append as many empty address arrays as needed to have (upTo + 1) entries (counting starts at 0 and upTo is a target address)
+    const newLEDs = Array(1 + upTo - light.LEDs.length).fill().map(() => ({
+      leads: [],
+      LEDs: []
+    }))
+    light.LEDs.push(...newLEDs)
+  },
   MOVE_LEAD (state, { light, address, index, point }) {
     let lead = light.LEDs[address].leads[index]
     Vue.set(lead, 'x', point.x)
@@ -158,6 +158,13 @@ const mutations = {
     let LED = light.LEDs[address].LEDs[index]
     Vue.set(LED, 'x', point.x)
     Vue.set(LED, 'y', point.y)
+  },
+  SHIFT_ADDRESSES (state, { light, from, amount }) {
+    const newLEDs = Array(amount).fill().map(() => ({
+      leads: [],
+      LEDs: []
+    }))
+    light.LEDs.splice(from, 0, ...newLEDs)
   }
 }
 
@@ -190,10 +197,10 @@ const actions = {
       })
     }
   },
-  addLED ({ dispatch }, { light, LED = { x: 0, y: 0 }, address = -1 }) {
-    return dispatch('addLEDs', { light, address, LEDs: [LED] })
+  addLED ({ dispatch }, { light, LED = { x: 0, y: 0 }, address = -1, stack = true }) {
+    return dispatch('addLEDs', { light, address, LEDs: [LED], stack })
   },
-  addLEDs ({ commit, getters, dispatch }, { light: { id, ..._light }, LEDs = [], address = -1 }) {
+  addLEDs ({ commit, getters, dispatch }, { light: { id, ..._light }, LEDs = [], address = -1, stack = true }) {
     LEDs = LEDs.filter(LED => LED)
     if (!LEDs.length) {
       return
@@ -206,6 +213,9 @@ const actions = {
       if (address < 0) {
         // push next address if none given
         address = light.LEDs.length
+      }
+      if (!stack && address < light.LEDs.length) {
+        commit('SHIFT_ADDRESSES', { light, from: address, amount: LEDs.length })
       }
       dispatch('assertAddress', { light, address }).then(() => {
         commit('ADD_LEDS', { light, LEDs, address })

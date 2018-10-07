@@ -152,6 +152,9 @@ export default class PaperLight {
       y: point.y
     }
   }
+  onAddressesShifted (from, amount) {
+    this.shiftPaperAddresses(from - 1, amount)
+  }
   onLeadsAdded (address, index, leads) {
     let offset = 0
     for (const lead of leads) {
@@ -172,7 +175,7 @@ export default class PaperLight {
       try {
         const paperLED = this.generatePaperLED(LED, address, index + offset++)
         if (paperLED) {
-          this.addPaperLinePoint(address, paperLED)
+          this.addPaperLinePoint(address, paperLED, this.light.LEDs[address].LEDs.length > 1)
         }
       } catch (error) {
         // Bad LED

@@ -215,6 +215,12 @@ export default class PaperLights {
     }
     return point
   }
+  onAddressesShifted (light, from, amount) {
+    light = this.assertLight(light)
+    if (light) {
+      light.onAddressesShifted(from, amount)
+    }
+  }
   onLightActivated (light = null, address = null) {
     if (this.$state.activeLight && (!light || this.$state.activeLight.id !== light.id)) {
       this.activateTool()

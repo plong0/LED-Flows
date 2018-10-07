@@ -112,16 +112,16 @@
           }
         }
       },
-      addLED (light, address, LED) {
+      addLED (light, address, LED, stack = false) {
         if (LED) {
           if (!light) {
             light = this.activeLight
           }
           if (light) {
-            this.$store.dispatch('Lights/addLED', { light, address, LED })
+            this.$store.dispatch('Lights/addLED', { light, address, LED, stack })
           } else {
             this.addLight().then(light => {
-              this.$store.dispatch('Lights/addLED', { light, address, LED })
+              this.$store.dispatch('Lights/addLED', { light, address, LED, stack })
             })
           }
         }
@@ -152,6 +152,9 @@
       },
       moveLED (light, address, index, delta) {
         this.$store.dispatch('Lights/moveLED', { light, address, index, delta })
+      },
+      onAddressesShifted (light, from, amount) {
+        this.lightMap.onAddressesShifted(light, from, amount)
       },
       onLedsAdded (light, address, LEDs) {
         this.lightMap.onLedsAdded(light, address, LEDs)
@@ -203,6 +206,9 @@
             break
           case 'Lights/MOVE_LED':
             this.onLedMoved(payload.light, payload.address, payload.index, payload.point)
+            break
+          case 'Lights/SHIFT_ADDRESSES':
+            this.onAddressesShifted(payload.light, payload.from, payload.amount)
             break
           case 'UI/ACTIVATE_LIGHT':
             this.onLightActivated(payload)
