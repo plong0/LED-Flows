@@ -6,6 +6,7 @@ export default class Default extends PaperLightTool {
     this.$doubleClickTime = 300
     this.$state = {
       activeLED: null,
+      shiftCloned: false,
       singleClickTimer: null,
       lastPoint: {
         mouseMove: null
@@ -25,6 +26,10 @@ export default class Default extends PaperLightTool {
           this.handleSingleClick()
         }
       }
+    }
+    this.clearState = () => {
+      this.$state.activeLED = null
+      this.$state.shiftCloned = false
     }
     this.handleSingleClick = () => {
       if (!this.$state.activeLED) {
@@ -60,6 +65,7 @@ export default class Default extends PaperLightTool {
       onDeactivate: () => {
         this.baseEvents.onDeactivate()
         this.clearSingleClickTimer()
+        this.clearState()
       },
       onMouseDown: (event) => {
         const hit = this.$PL.hitTestAtPoint(this.$PL.normalizePoint(event.downPoint))
@@ -78,9 +84,18 @@ export default class Default extends PaperLightTool {
       },
       onMouseDrag: (event) => {
         if (this.$state.activeLED) {
-          const delta = this.$PL.normalizePoint(event.delta)
           const LED = this.$state.activeLED.data
-          this.$PL.moveLED(delta, LED.light, LED.address.id, LED.LEDindex)
+          if (this.pressedKeys.includes('shift') && !this.$state.shiftCloned) {
+            const point = this.$PL.normalizePoint(event.point)
+            this.$PL.addLED(point, LED.address.id, LED.light, true).then(() => {
+              this.$state.activeLED = LED.address.LEDs[LED.address.LEDs.length - 1]
+            })
+            this.$state.activeLED = null
+            this.$state.shiftCloned = true
+          } else {
+            const delta = this.$PL.normalizePoint(event.delta)
+            this.$PL.moveLED(delta, LED.light, LED.address.id, LED.LEDindex)
+          }
         }
         this.$state.lastTime.mouseDrag = event.timeStamp
       },
@@ -104,6 +119,7 @@ export default class Default extends PaperLightTool {
         } else if (this.$state.activeLED) {
           this.$state.activeLED = null
         }
+        this.$state.shiftCloned = false
         this.$state.lastTime.mouseUp = event.timeStamp
       }
     }

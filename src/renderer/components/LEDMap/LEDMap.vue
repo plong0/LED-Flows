@@ -118,10 +118,10 @@
             light = this.activeLight
           }
           if (light) {
-            this.$store.dispatch('Lights/addLED', { light, address, LED, stack })
+            return this.$store.dispatch('Lights/addLED', { light, address, LED, stack })
           } else {
-            this.addLight().then(light => {
-              this.$store.dispatch('Lights/addLED', { light, address, LED, stack })
+            return this.addLight().then(light => {
+              return this.$store.dispatch('Lights/addLED', { light, address, LED, stack })
             })
           }
         }

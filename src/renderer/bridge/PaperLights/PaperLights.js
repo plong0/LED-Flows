@@ -46,7 +46,7 @@ export default class PaperLights {
   $activateLight (light = null, address = null) {
     // TODO: implement default handler (stand-alone model)
   }
-  $addLED (light, address, LED) {
+  $addLED (light, address, LED, stack = false) {
     // TODO: implement default handler (stand-alone model)
   }
   $addLead (light, address, index, lead) {
@@ -133,13 +133,14 @@ export default class PaperLights {
       this.addLayer(name, ((index || index === 0) ? (index + indexOffset++) : undefined))
     }
   }
-  addLED (point, address = null, light = null) {
+  addLED (point, address = null, light = null, stack = false) {
     // it is ok if activeLight and activeAddress are not set here
     // it only matters that the $action does the right thing with them undefined
     return this.$actions.addLED(
       (light !== null ? light : this.activeLight),
       (address !== null ? address : this.activeAddress),
-      { x: point.x, y: point.y }
+      { x: point.x, y: point.y },
+      stack
     )
   }
   addLead (point, address = null, index = null, light = null) {
