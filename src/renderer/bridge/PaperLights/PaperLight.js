@@ -240,9 +240,9 @@ export default class PaperLight {
       }
     }
   }
-  onLeadDeleted (address, index, position) {
+  onLeadDeleted (address, index) {
   }
-  onLedDeleted (address, index, position) {
+  onLedDeleted (address, index) {
     let paperLED = this.getPaperLED(address, index)
     if (paperLED) {
       paperLED.remove()

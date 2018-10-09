@@ -221,7 +221,8 @@ export default class MultiLine extends Group {
                 multiLine.data = {
                   ...this.data.data,
                   multiSegment: index - (direction < 0 ? this.getIndexOffset(index) : 0),
-                  multiIndex: i
+                  multiIndex: i,
+                  segmentIndex: index - (direction < 0 ? 1 : 0)
                 }
                 this.data.multiPointLines[index][slot].push(multiLine)
                 this.data.multiLines.addChild(multiLine)
@@ -237,13 +238,14 @@ export default class MultiLine extends Group {
         }
       }
     }
-    this.getIndexOffset = (index) => {
+    this.getIndexOffset = (index, absolute = false) => {
+      // set absolute = true to include auto-genereated points in given index (ex. when cross-referencing line segments)
       if (index >= 0) {
         // count how many multiJoinPoints there are on the line before index
         // this allows caller to interact using indexes of only the points it inserts
         // (caller can safely ignore any auto-generated connection points)
         let indexOffset = 0
-        for (let i = 0; i < this.data.multiPoints.length && i <= index + indexOffset; i++) {
+        for (let i = 0; i < this.data.multiPoints.length && i <= index + (absolute ? 0 : indexOffset); i++) {
           if (this.data.multiPoints[i].constructor.name === 'Point') {
             indexOffset++
           }
@@ -251,6 +253,10 @@ export default class MultiLine extends Group {
         return indexOffset
       }
       return 0
+    }
+    this.getSegmentPointIndex = (segmentIndex) => {
+      // retrieve multi-point index associated with given segmentIndex
+      return (segmentIndex - this.getIndexOffset(segmentIndex, true))
     }
     this.refreshChildValues = (key, object) => {
       let updateItems = []

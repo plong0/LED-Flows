@@ -6,6 +6,7 @@ export default class Default extends PaperLightTool {
     this.$doubleClickTime = 300
     this.$state = {
       activeLED: null,
+      hoverLine: null,
       shiftCloned: false,
       singleClickTimer: null,
       lastPoint: {
@@ -16,7 +17,8 @@ export default class Default extends PaperLightTool {
         mouseDrag: null,
         mouseMove: null,
         mouseUp: null
-      }
+      },
+      tempLED: null
     }
     this.clearSingleClickTimer = (forceRun = false) => {
       if (this.$state.singleClickTimer) {
@@ -29,7 +31,24 @@ export default class Default extends PaperLightTool {
     }
     this.clearState = () => {
       this.$state.activeLED = null
+      this.$state.hoverLine = null
       this.$state.shiftCloned = false
+      this.clearTempLED()
+    }
+    this.clearTempLED = () => {
+      if (this.$state.tempLED) {
+        this.$PL.deleteLED(this.$state.tempLED.light, this.$state.tempLED.address, 0)
+        this.$state.tempLED = null
+      }
+    }
+    this.createTempLED = () => {
+      if (this.$state.hoverLine && !this.$state.tempLED) {
+        this.$state.tempLED = {
+          light: this.$state.hoverLine.light,
+          address: this.$state.hoverLine.segmentIndex + 1
+        }
+        this.$PL.addLED(this.$state.lastPoint.mouseMove, this.$state.tempLED.address, this.$state.tempLED.light)
+      }
     }
     this.handleSingleClick = () => {
       if (!this.$state.activeLED) {
@@ -61,13 +80,49 @@ export default class Default extends PaperLightTool {
       }
       return false
     }
+    this.refreshTempLED = () => {
+      if (this.$state.hoverLine && this.pressedKeys.includes('shift')) {
+        if (!this.$state.tempLED) {
+          this.createTempLED()
+        } else if (this.$state.tempLED.light.id !== this.$state.hoverLine.light.id || this.$state.tempLED.address !== this.$state.hoverLine.segmentIndex + 1) {
+          this.clearTempLED()
+          this.createTempLED()
+        }
+      } else if (!this.$state.hoverLine || !this.pressedKeys.includes('shift')) {
+        if (this.$state.tempLED) {
+          this.clearTempLED()
+        }
+      }
+    }
     const events = {
       onDeactivate: () => {
         this.baseEvents.onDeactivate()
         this.clearSingleClickTimer()
         this.clearState()
       },
+      onKeyDown: (event) => {
+        if (this.baseEvents.onKeyDown(event)) {
+          return true
+        }
+        if (event.key === 'shift') {
+          this.refreshTempLED()
+        }
+      },
+      onKeyUp: (event) => {
+        if (this.baseEvents.onKeyUp(event)) {
+          return true
+        }
+        if (event.key === 'shift') {
+          this.clearTempLED()
+        }
+      },
       onMouseDown: (event) => {
+        if (this.$state.tempLED) {
+          // leave the LED in place and forget about it
+          this.$state.tempLED = null
+          // also prevent a duplicate being created on mouse drag
+          this.$state.shiftCloned = true
+        }
         const hit = this.$PL.hitTestAtPoint(this.$PL.normalizePoint(event.downPoint))
         this.$state.activeLED = null
         if (hit && hit.item) {
@@ -102,6 +157,39 @@ export default class Default extends PaperLightTool {
       onMouseMove: (event) => {
         this.$state.lastTime.mouseMove = event.timeStamp
         this.$state.lastPoint.mouseMove = this.$PL.normalizePoint(event.point)
+        const hit = this.$PL.hitTestAtPoint(this.$PL.normalizePoint(event.point))
+        let hoverLine = null
+        if (hit && hit.item) {
+          if (hit.item.data && hit.item.data.light) {
+            if (hit.location) {
+              let segmentIndex = hit.location.index
+              if (hit.location.path.data && hit.location.path.data.hasOwnProperty('segmentIndex')) {
+                // segmentIndex could be explicitly set (ie. multi-point connection lines)
+                segmentIndex = parseInt(hit.location.path.data['segmentIndex'])
+              }
+              let paperLight = this.$PL.assertLight(hit.item.data.light, false)
+              if (paperLight && paperLight.$paperLine) {
+                hoverLine = {
+                  light: hit.item.data.light,
+                  segmentIndex: paperLight.$paperLine.getSegmentPointIndex(segmentIndex)
+                }
+              }
+            }
+          }
+          if (hit.item.data && hit.item.data.LED) {
+            // LED hovered
+          }
+        }
+        if (hoverLine) {
+          this.$state.hoverLine = hoverLine
+        } else if (this.$state.hoverLine) {
+          this.$state.hoverLine = null
+        }
+        if (this.$state.hoverLine && this.pressedKeys.includes('shift')) {
+          this.refreshTempLED()
+        } else if (this.$state.tempLED) {
+          this.clearTempLED()
+        }
         this.clearSingleClickTimer(true)
       },
       onMouseUp: (event) => {
