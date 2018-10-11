@@ -15,12 +15,15 @@ function calculateAveragePoint (points = []) {
   average.y /= count
   return average
 }
-function shiftObjectKeys (object, after, amount) {
+function shiftObjectKeys (object, after, amount, callback) {
   const keys = Object.keys(object)
     .filter(value => (parseInt(value) > after))
     .sort((a, b) => (amount < 0) ? (a - b) : (b - a))
   for (let key of keys) {
     object[parseInt(key) + amount] = object[key]
+    if (typeof callback === 'function') {
+      callback(key, object[key], amount)
+    }
     object[key] = undefined
     delete object[key]
   }
@@ -70,7 +73,7 @@ export default class MultiLine extends Group {
       } else {
         // insert new at index
         this.data.multiPoints.splice(index, 0, multiPoint)
-        shiftObjectKeys(this.data.multiPointLines, index - 1, 1)
+        shiftObjectKeys(this.data.multiPointLines, index - 1, 1, this.shiftSegmentIndex)
       }
       if (addLinePoint) {
         // creating a new multiPoint
@@ -134,11 +137,11 @@ export default class MultiLine extends Group {
               this.data.mainLine.insert(index + (direction > 0 ? 1 : 0), multiJoinPoint)
               if (direction < 0) {
                 // added before index (but after nextIndex)
-                shiftObjectKeys(this.data.multiPointLines, index - 1, 1)
+                shiftObjectKeys(this.data.multiPointLines, index - 1, 1, this.shiftSegmentIndex)
                 index++
               } else {
                 // added after index (but before nextIndex)
-                shiftObjectKeys(this.data.multiPointLines, index, 1)
+                shiftObjectKeys(this.data.multiPointLines, index, 1, this.shiftSegmentIndex)
                 nextIndex++
               }
             } else if (nextPoint.constructor.name === 'Point') {
@@ -151,10 +154,10 @@ export default class MultiLine extends Group {
             this.data.multiPoints.splice(index + direction, 1)
             this.data.mainLine.removeSegment(index + direction)
             if (direction < 0) {
-              shiftObjectKeys(this.data.multiPointLines, index - 1, -1)
+              shiftObjectKeys(this.data.multiPointLines, index - 1, -1, this.shiftSegmentIndex)
               index--
             } else {
-              shiftObjectKeys(this.data.multiPointLines, index, -1)
+              shiftObjectKeys(this.data.multiPointLines, index, -1, this.shiftSegmentIndex)
               nextIndex--
             }
           }
@@ -295,7 +298,7 @@ export default class MultiLine extends Group {
           }
           if (!multiPoint.length) {
             this.data.multiPoints.splice(index, 1)
-            shiftObjectKeys(this.data.multiPointLines, index, -1)
+            shiftObjectKeys(this.data.multiPointLines, index, -1, this.shiftSegmentIndex)
             if (index > 0) {
               index--
             }
@@ -341,6 +344,28 @@ export default class MultiLine extends Group {
       }
       // paper.js automatically applies it to any existing children
       this.style = style
+    }
+    this.shiftSegmentIndex = (pointIndex, items, amount) => {
+      if (!amount) {
+        return
+      }
+      const newIndex = parseInt(pointIndex) + amount
+      if (items.from) {
+        for (let item of items.from) {
+          if (item && item.data && item.data.hasOwnProperty('segmentIndex')) {
+            item.data.multiSegment = newIndex
+            item.data.segmentIndex += amount
+          }
+        }
+      }
+      if (items.to) {
+        for (let item of items.to) {
+          if (item && item.data && item.data.hasOwnProperty('segmentIndex')) {
+            item.data.multiSegment = newIndex
+            item.data.segmentIndex += amount
+          }
+        }
+      }
     }
   }
 }
