@@ -209,6 +209,14 @@ export default class PaperLight {
       lastAddress = paperAddress
     }
   }
+  getPaperLead (address, index) {
+    if (this.$PL.assertPaper()) {
+      const paperAddress = this.assertPaperAddress(address, false)
+      if (paperAddress && index >= 0 && index < paperAddress.leads.length) {
+        return paperAddress.leads[index]
+      }
+    }
+  }
   getPaperLED (address, index) {
     if (this.$PL.assertPaper()) {
       const paperAddress = this.assertPaperAddress(address, false)
@@ -255,16 +263,25 @@ export default class PaperLight {
     }
   }
   onLeadDeleted (address, index) {
+    let paperLead = this.getPaperLead(address, index)
+    let lineIndex = this.getLinePointIndex(address, index)
+    if (paperLead) {
+      this.$paperLEDs[address].leads.splice(index, 1)
+      this.refreshPaperAddress(address)
+    }
+    if (this.$paperLine) {
+      this.$paperLine.removeMultiPoint(lineIndex, index)
+    }
   }
   onLedDeleted (address, index) {
     let paperLED = this.getPaperLED(address, index)
+    let lineIndex = this.getLinePointIndex(address, null)
     if (paperLED) {
       paperLED.remove()
       this.$paperLEDs[address].LEDs.splice(index, 1)
       this.refreshPaperAddress(address)
     }
     if (this.$paperLine) {
-      let lineIndex = this.getLinePointIndex(address)
       this.$paperLine.removeMultiPoint(lineIndex, index)
     }
   }
