@@ -7,6 +7,7 @@ export default class Default extends PaperLightTool {
     this.$state = {
       activeLED: null,
       hoverLine: null,
+      insertMode: null,
       shiftCloned: false,
       singleClickTimer: null,
       lastPoint: {
@@ -18,6 +19,7 @@ export default class Default extends PaperLightTool {
         mouseMove: null,
         mouseUp: null
       },
+      tempLead: null,
       tempLED: null
     }
     this.clearSingleClickTimer = (forceRun = false) => {
@@ -32,22 +34,60 @@ export default class Default extends PaperLightTool {
     this.clearState = () => {
       this.$state.activeLED = null
       this.$state.hoverLine = null
+      this.$state.insertMode = null
       this.$state.shiftCloned = false
       this.clearTempLED()
+      this.clearTempLead()
+    }
+    this.clearTempLead = () => {
+      if (this.$state.tempLead) {
+        this.$PL.deleteLead(this.$state.tempLead.light, this.$state.tempLead.address, this.$state.tempLead.leadIndex)
+        this.$state.tempLead = null
+      }
     }
     this.clearTempLED = () => {
       if (this.$state.tempLED) {
+        for (let i = 0; i < this.$state.tempLED.leads.length; i++) {
+          this.$PL.deleteLead(this.$state.tempLED.light, this.$state.tempLED.address, 0)
+        }
         this.$PL.deleteLED(this.$state.tempLED.light, this.$state.tempLED.address, 0)
+        for (let i = this.$state.tempLED.leads.length - 1; i >= 0; i--) {
+          this.$PL.addLead(this.$state.tempLED.leads[i], this.$state.tempLED.address, 0, this.$state.tempLED.light)
+        }
         this.$state.tempLED = null
+      }
+    }
+    this.createTempLead = () => {
+      if (this.$state.hoverLine && !this.$state.tempLead) {
+        this.$state.tempLead = {
+          light: this.$state.hoverLine.light,
+          address: this.$state.hoverLine.address,
+          leadIndex: 0
+        }
+        this.$PL.addLead(this.$state.lastPoint.mouseMove, this.$state.tempLead.address, this.$state.tempLead.leadIndex, this.$state.tempLead.light)
       }
     }
     this.createTempLED = () => {
       if (this.$state.hoverLine && !this.$state.tempLED) {
         this.$state.tempLED = {
           light: this.$state.hoverLine.light,
-          address: this.$state.hoverLine.segmentIndex + 1
+          address: this.$state.hoverLine.address,
+          addressIndex: this.$state.hoverLine.addressIndex,
+          leads: []
+        }
+        if (this.$state.hoverLine.addressIndex) {
+          let address = this.$state.hoverLine.light.LEDs[this.$state.hoverLine.address]
+          if (address) {
+            this.$state.tempLED.leads = address.leads.slice(0, this.$state.hoverLine.addressIndex)
+            for (let i = 0; i < this.$state.tempLED.leads.length; i++) {
+              this.$PL.deleteLead(this.$state.tempLED.light, this.$state.tempLED.address, 0)
+            }
+          }
         }
         this.$PL.addLED(this.$state.lastPoint.mouseMove, this.$state.tempLED.address, this.$state.tempLED.light)
+        for (let i = 0; i < this.$state.tempLED.leads.length; i++) {
+          this.$PL.addLead(this.$state.tempLED.leads[i], this.$state.tempLED.address, i, this.$state.tempLED.light)
+        }
       }
     }
     this.handleSingleClick = () => {
@@ -81,18 +121,49 @@ export default class Default extends PaperLightTool {
       return false
     }
     this.refreshTempLED = () => {
-      if (this.$state.hoverLine && this.pressedKeys.includes('shift')) {
-        if (!this.$state.tempLED) {
-          this.createTempLED()
-        } else if (this.$state.tempLED.light.id !== this.$state.hoverLine.light.id || this.$state.tempLED.address !== this.$state.hoverLine.segmentIndex + 1) {
-          this.clearTempLED()
-          this.createTempLED()
+      if (this.$state.hoverLine && this.$state.insertMode) {
+        if (this.$state.insertMode === 'lead') {
+          if (!this.$state.tempLead) {
+            this.createTempLead()
+          } else if (this.$state.tempLead.light.id !== this.$state.hoverLine.light.id || this.$state.tempLead.address !== this.$state.hoverLine.address || this.$state.tempLead.leadIndex !== this.$state.hoverLine.addressIndex) {
+            // recreate the lead based on the new hoverLine
+            this.clearTempLead()
+            this.createTempLead()
+          }
+        } else {
+          if (!this.$state.tempLED) {
+            this.createTempLED()
+          } else if (this.$state.tempLED.light.id !== this.$state.hoverLine.light.id || this.$state.tempLED.address !== this.$state.hoverLine.address) {
+            // recreate the LED based on the new hoverLine
+            this.clearTempLED()
+            this.createTempLED()
+          }
         }
-      } else if (!this.$state.hoverLine || !this.pressedKeys.includes('shift')) {
+      } else if (!this.$state.hoverLine || !this.$state.insertMode) {
         if (this.$state.tempLED) {
           this.clearTempLED()
         }
+        if (this.$state.tempLead) {
+          this.clearTempLead()
+        }
       }
+    }
+    this.setInsertMode = (mode = null) => {
+      if (mode === 'LED') {
+        this.clearTempLead()
+        if (!this.$state.tempLED) {
+          this.createTempLED()
+        }
+      } else if (mode === 'lead') {
+        this.clearTempLED()
+        if (!this.$state.tempLead) {
+          this.createTempLead()
+        }
+      } else {
+        this.clearTempLED()
+        this.clearTempLead()
+      }
+      this.$state.insertMode = mode
     }
     const events = {
       onDeactivate: () => {
@@ -105,7 +176,10 @@ export default class Default extends PaperLightTool {
           return true
         }
         if (event.key === 'shift') {
-          this.refreshTempLED()
+          this.setInsertMode('LED')
+        }
+        if (event.key === 'control') {
+          this.setInsertMode('lead')
         }
       },
       onKeyUp: (event) => {
@@ -113,13 +187,17 @@ export default class Default extends PaperLightTool {
           return true
         }
         if (event.key === 'shift') {
-          this.clearTempLED()
+          this.setInsertMode()
+        }
+        if (event.key === 'control') {
+          this.setInsertMode()
         }
       },
       onMouseDown: (event) => {
-        if (this.$state.tempLED) {
-          // leave the LED in place and forget about it
+        if (this.$state.tempLED || this.$state.tempLead) {
+          // leave the LED or lead in place and forget about it
           this.$state.tempLED = null
+          this.$state.tempLead = null
           // also prevent a duplicate being created on mouse drag
           this.$state.shiftCloned = true
         }
@@ -169,9 +247,11 @@ export default class Default extends PaperLightTool {
               }
               let paperLight = this.$PL.assertLight(hit.item.data.light, false)
               if (paperLight && paperLight.$paperLine) {
+                const segmentAddress = paperLight.getLineSegmentAddress(segmentIndex) || {}
                 hoverLine = {
                   light: hit.item.data.light,
-                  segmentIndex: paperLight.$paperLine.getSegmentPointIndex(segmentIndex)
+                  address: segmentAddress.address,
+                  addressIndex: segmentAddress.addressIndex
                 }
               }
             }
