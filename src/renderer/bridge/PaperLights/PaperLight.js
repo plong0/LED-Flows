@@ -86,6 +86,7 @@ export default class PaperLight {
       const paperAddress = this.assertPaperAddress(address)
       if (paperAddress) {
         const paperLead = new paper.Point(lead.x, lead.y)
+        paperAddress.leads.push(paperLead)
         if (!paperLead.data) {
           paperLead.data = {}
         }
@@ -117,62 +118,24 @@ export default class PaperLight {
     }
   }
   getLinePoint (index = null) {
-    // if index < 0, return from end of line (with -1 as origin)
-    if (index === null) {
-      index = -1
-    }
-    const reverse = (index < 0)
-    const addresses = Object.keys(this.$paperLEDs).sort((a, b) => (reverse ? (b - a) : (a - b)))
-    let pointIndex = 0
-    if (reverse) {
-      index = -index - 1
-    }
-    for (let key of addresses) {
-      const paperAddress = this.$paperLEDs[key]
-      const addressLength = paperAddress.leads.length + (paperAddress.LEDs.length ? 1 : 0)
-      if (pointIndex + addressLength >= index) {
-        // match somewhere in this address
-        let offset = index - pointIndex
-        let returnIndex = null
-        if (reverse) {
-          if (offset === 0 && paperAddress.LEDs.length) {
-            // return the LEDs
-            returnIndex = -1
-          } else {
-            if (!paperAddress.LEDs.length) {
-              offset++
-            }
-            if (offset <= paperAddress.leads.length && paperAddress.leads.length) {
-              returnIndex = paperAddress.leads.length - offset
-            }
-          }
-        } else {
-          // forward
-          if (offset < paperAddress.leads.length) {
-            // return a lead
-            returnIndex = offset
-          } else {
-            // return the LEDs
-            returnIndex = -1
-          }
+    const segmentAddress = this.getLineSegmentAddress(index, true)
+    if (segmentAddress && this.$paperLEDs.hasOwnProperty(segmentAddress.address)) {
+      const paperAddress = this.$paperLEDs[segmentAddress.address]
+      if (segmentAddress.addressIndex === null) {
+        // all LEDs
+        return {
+          address: paperAddress,
+          LEDs: paperAddress.LEDs,
+          points: paperAddress.LEDs.map((LED) => ({ x: LED.position.x, y: LED.position.y }))
         }
-        if (returnIndex === -1 && paperAddress.LEDs.length) {
-          // return the LEDs
-          return {
-            address: paperAddress,
-            LEDs: paperAddress.LEDs,
-            points: paperAddress.LEDs.map((LED) => ({ x: LED.position.x, y: LED.position.y }))
-          }
-        } else if (returnIndex !== null && returnIndex > 0 && returnIndex < paperAddress.leads.length) {
-          // return a lead
-          return {
-            address: paperAddress,
-            lead: paperAddress.leads[returnIndex],
-            points: [{ x: paperAddress.leads[returnIndex].x, y: paperAddress.leads[returnIndex].y }]
-          }
+      } else if (segmentAddress.addressIndex >= 0 && segmentAddress.addressIndex < paperAddress.leads.length) {
+        // a lead
+        return {
+          address: paperAddress,
+          lead: paperAddress.leads[segmentAddress.addressIndex],
+          points: [{ x: paperAddress.leads[segmentAddress.addressIndex].x, y: paperAddress.leads[segmentAddress.addressIndex].y }]
         }
       }
-      pointIndex += addressLength
     }
   }
   getLinePointIndex (address = null, index = null) {
@@ -183,9 +146,10 @@ export default class PaperLight {
       const paperAddress = this.$paperLEDs[key]
       if (parseInt(key) === address) {
         if (index === null) {
+          // LED index at the end of leads
           pointIndex += paperAddress.leads.length
         } else if (paperAddress.leads.length) {
-          pointIndex += (paperAddress.leads.length - 1 - index)
+          pointIndex += index
         }
         // address is found and pointIndex offset apppropriately
         break
@@ -194,6 +158,56 @@ export default class PaperLight {
       }
     }
     return pointIndex
+  }
+  getLineSegmentAddress (segmentIndex, includeEnds = false) {
+    // if segmentIndex < 0, return from end of line (with -1 as origin)
+    if (segmentIndex === null) {
+      segmentIndex = -1
+    }
+    const reverse = (segmentIndex < 0)
+    const addresses = Object.keys(this.$paperLEDs).sort((a, b) => (reverse ? (b - a) : (a - b)))
+    let lastAddress = null
+    let pointIndex = 0
+    if (reverse) {
+      segmentIndex = -segmentIndex - 1
+    }
+    for (let key of addresses) {
+      const paperAddress = this.$paperLEDs[key]
+      const addressLength = paperAddress.leads.length + (paperAddress.LEDs.length ? 1 : 0)
+      key = parseInt(key)
+      if (key === 0 && !paperAddress.leads.length && (!includeEnds || !paperAddress.LEDs.length)) {
+        // skip address 0 if it has no leads, it has no line segments
+        continue
+      }
+      if (lastAddress !== null && lastAddress.LEDs.length > 1 && paperAddress.LEDs.length > 1 && !paperAddress.leads.length) {
+        // multi-point to multi-point has an extra segment
+        pointIndex += 1
+      }
+      if (pointIndex + addressLength > segmentIndex) {
+        // match somewhere in this address
+        let offset = segmentIndex - pointIndex
+        if (includeEnds) {
+          if (!reverse && offset === paperAddress.leads.length) {
+            offset++
+          } else if (reverse && offset === 0) {
+            offset--
+          }
+        }
+        if (paperAddress.leads.length && offset >= 0 && offset <= paperAddress.leads.length) {
+          return {
+            address: key,
+            addressIndex: reverse ? (paperAddress.leads.length - offset) : offset
+          }
+        } else if (paperAddress.LEDs.length) {
+          return {
+            address: key,
+            addressIndex: null
+          }
+        }
+      }
+      pointIndex += addressLength
+      lastAddress = paperAddress
+    }
   }
   getPaperLED (address, index) {
     if (this.$PL.assertPaper()) {
