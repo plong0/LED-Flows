@@ -15,9 +15,12 @@ function calculateAveragePoint (points = []) {
   average.y /= count
   return average
 }
-function shiftObjectKeys (object, after, amount, callback) {
+function shiftObjectKeys (object, after, before, amount, callback) {
   const keys = Object.keys(object)
-    .filter(value => (parseInt(value) > after))
+    .filter(value => {
+      value = parseInt(value)
+      return (value > after && (before < 0 || value < before))
+    })
     .sort((a, b) => (amount < 0) ? (a - b) : (b - a))
   for (let key of keys) {
     object[parseInt(key) + amount] = object[key]
@@ -73,7 +76,7 @@ export default class MultiLine extends Group {
       } else {
         // insert new at index
         this.data.multiPoints.splice(index, 0, multiPoint)
-        shiftObjectKeys(this.data.multiPointLines, index - 1, 1, this.shiftSegmentIndex)
+        shiftObjectKeys(this.data.multiPointLines, index - 1, -1, 1, this.shiftSegmentIndex)
       }
       if (addLinePoint) {
         // creating a new multiPoint
@@ -103,6 +106,13 @@ export default class MultiLine extends Group {
     }
     this.checkMultiPoint = (index, direction) => {
       if (!direction) {
+        return
+      }
+      if (index >= this.data.multiPoints.length - 1 && this.data.multiPoints[this.data.multiPoints.length - 1].constructor.name === 'Point') {
+        this.data.multiPoints.splice(this.data.multiPoints.length - 1, 1)
+        this.data.mainLine.removeSegment(this.data.multiPoints.length)
+        this.checkMultiPointLines(this.data.multiPoints.length - 1, 1)
+        this.checkMultiPointLines(this.data.multiPoints.length - 1, -1)
         return
       }
       // direction < 0 checks before index
@@ -137,11 +147,11 @@ export default class MultiLine extends Group {
               this.data.mainLine.insert(index + (direction > 0 ? 1 : 0), multiJoinPoint)
               if (direction < 0) {
                 // added before index (but after nextIndex)
-                shiftObjectKeys(this.data.multiPointLines, index - 1, 1, this.shiftSegmentIndex)
+                shiftObjectKeys(this.data.multiPointLines, index - 1, -1, 1, this.shiftSegmentIndex)
                 index++
               } else {
                 // added after index (but before nextIndex)
-                shiftObjectKeys(this.data.multiPointLines, index, 1, this.shiftSegmentIndex)
+                shiftObjectKeys(this.data.multiPointLines, index, -1, 1, this.shiftSegmentIndex)
                 nextIndex++
               }
             } else if (nextPoint.constructor.name === 'Point') {
@@ -154,10 +164,10 @@ export default class MultiLine extends Group {
             this.data.multiPoints.splice(index + direction, 1)
             this.data.mainLine.removeSegment(index + direction)
             if (direction < 0) {
-              shiftObjectKeys(this.data.multiPointLines, index - 1, -1, this.shiftSegmentIndex)
+              shiftObjectKeys(this.data.multiPointLines, index - 1, -1, -1, this.shiftSegmentIndex)
               index--
             } else {
-              shiftObjectKeys(this.data.multiPointLines, index, -1, this.shiftSegmentIndex)
+              shiftObjectKeys(this.data.multiPointLines, index, -1, -1, this.shiftSegmentIndex)
               nextIndex--
             }
           }
@@ -298,7 +308,7 @@ export default class MultiLine extends Group {
           }
           if (!multiPoint.length) {
             this.data.multiPoints.splice(index, 1)
-            shiftObjectKeys(this.data.multiPointLines, index, -1, this.shiftSegmentIndex)
+            shiftObjectKeys(this.data.multiPointLines, index, -1, -1, this.shiftSegmentIndex)
             if (index > 0) {
               index--
             }
@@ -344,6 +354,103 @@ export default class MultiLine extends Group {
       }
       // paper.js automatically applies it to any existing children
       this.style = style
+    }
+    this.shiftPoints = (from, to, count) => {
+      if (to === from) {
+        return
+      }
+      const forward = (to > from)
+      const fromOffset = this.getIndexOffset(from)
+      from += fromOffset
+      let length = 0
+      let counted = 0
+      for (let i = from; i < this.data.multiPoints.length; i++) {
+        length++
+        if (Array.isArray(this.data.multiPoints[i])) {
+          counted++
+        }
+        if (counted >= count) {
+          break
+        }
+      }
+      const toOffset = this.getIndexOffset(to + length)
+      let mplClone = {}
+      for (let key in this.data.multiPointLines) {
+        mplClone[key] = {
+          from: [...this.data.multiPointLines[key].from],
+          to: [...this.data.multiPointLines[key].to]
+        }
+      }
+      // remove from multiPoints
+      const multiPoints = this.data.multiPoints.splice(from, length)
+      // removeSegments from mainLine
+      let mainSegments
+      if (this.data.mainLine) {
+        mainSegments = this.data.mainLine.removeSegments(from, from + length)
+      }
+      // collect multiPointLines that are being shifted
+      let multiPointLines = {}
+      for (let i = from; i < from + length; i++) {
+        if (this.data.multiPointLines[i]) {
+          multiPointLines[i] = this.data.multiPointLines[i]
+          this.data.multiPointLines[i] = undefined
+          delete this.data.multiPointLines[i]
+        }
+      }
+      if (from < this.data.multiPoints.length && this.data.multiPoints[from].constructor.name === 'Point') {
+        // remove the multiJoinPoint from multiPoints and mainLine
+        this.data.multiPoints.splice(from, 1)
+        if (this.data.mainLine) {
+          this.data.mainLine.removeSegment(from)
+        }
+        // keep multiPointLines keys synchronized with multiPoints
+        shiftObjectKeys(this.data.multiPointLines, from - 1, -1, -1, this.shiftSegmentIndex)
+      }
+      // shift keys of multiPointLines between from and to
+      if (forward) {
+        // temporarily shift multiPointLines keys to check points
+        shiftObjectKeys(this.data.multiPointLines, from, to + toOffset + length + 1, -length, this.shiftSegmentIndex)
+        // check multiPoints that point at from would have touched
+        this.checkMultiPoint(from, -1)
+        if (length > 1) {
+          this.checkMultiPoint(from + length - 1, -1)
+        }
+        // find absolute index to insert to
+        to += this.getIndexOffset(to)
+        // shift the multiPointLines keys back to allow room for shifted multiPointLines to be inserted
+        shiftObjectKeys(this.data.multiPointLines, to - 1, to + length, length, this.shiftSegmentIndex)
+      } else {
+        // temporarily shift multiPointLines keys to check points
+        shiftObjectKeys(this.data.multiPointLines, from - 1, from + length + 1, -length, this.shiftSegmentIndex)
+        // check multiPoints that point at from would have touched
+        this.checkMultiPoint(from, -1)
+        // find absolute index to insert to
+        to += this.getIndexOffset(to)
+        // shift the multiPointLines keys back to allow room for shifted multiPointLines to be inserted
+        shiftObjectKeys(this.data.multiPointLines, to - 1, from + length, length, this.shiftSegmentIndex)
+      }
+      // the multiPoints have been removed and multiPointLines cleaned up
+      // the line is at a state where everything is correct except it does not have the shifted points
+      // time to re-insert the shifted points
+      if (to > this.data.multiPoints.length) {
+        to = this.data.multiPoints.length
+      }
+      // insert into multiPoints
+      this.data.multiPoints.splice(to, 0, ...multiPoints)
+      // insertSegments to mainLine
+      if (this.data.mainLine && mainSegments) {
+        this.data.mainLine.insertSegments(to, mainSegments)
+      }
+      // re-insert (recycle) multiPointLines with shifted index
+      for (let key in multiPointLines) {
+        const amount = (to - from)
+        const newKey = parseInt(key) + amount
+        this.shiftSegmentIndex(key, multiPointLines[key], amount)
+        this.data.multiPointLines[newKey] = multiPointLines[key]
+      }
+      // update the multi-points
+      to = this.checkMultiPoint(to, -1)
+      this.checkMultiPoint(to + length - 1, 1)
     }
     this.shiftSegmentIndex = (pointIndex, items, amount) => {
       if (!amount) {
