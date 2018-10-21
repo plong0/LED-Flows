@@ -86,7 +86,7 @@ export default class PaperLight {
       const paperAddress = this.assertPaperAddress(address)
       if (paperAddress) {
         const paperLead = new paper.Point(lead.x, lead.y)
-        paperAddress.leads.push(paperLead)
+        paperAddress.leads.splice(index, 0, paperLead)
         if (!paperLead.data) {
           paperLead.data = {}
         }
@@ -270,7 +270,7 @@ export default class PaperLight {
       this.refreshPaperAddress(address)
     }
     if (this.$paperLine) {
-      this.$paperLine.removeMultiPoint(lineIndex, index)
+      this.$paperLine.removeMultiPoint(lineIndex, 0)
     }
   }
   onLedDeleted (address, index) {
@@ -301,6 +301,24 @@ export default class PaperLight {
       this.$paperLine.setMultiPoint(lineIndex, index, position)
     }
   }
+  onLeadsTransferred (from, to, start, count, insert) {
+    const paperFrom = this.assertPaperAddress(from, false)
+    const paperTo = this.assertPaperAddress(to, false)
+    const fromIndex = this.getLinePointIndex(from, start)
+    const toIndex = this.getLinePointIndex(to, insert)
+    if (paperFrom && paperTo && start >= 0 && start < paperFrom.leads.length) {
+      const leads = paperFrom.leads.splice(start, count || paperFrom.leads.length)
+      paperTo.leads.splice(insert || 0, 0, ...leads)
+      this.refreshPaperAddress(from)
+      this.refreshPaperAddress(to)
+      if (this.$paperLine) {
+        if (to !== from + 1 || insert !== 0 || paperFrom.LEDs.length) {
+          // update paperLine on non-consecutive transfer
+          this.$paperLine.shiftPoints(fromIndex, toIndex, count)
+        }
+      }
+    }
+  }
   refresh () {
     // TODO: refresh the PaperLEDs
   }
@@ -313,11 +331,13 @@ export default class PaperLight {
     } else {
       for (let i = 0; i < paperAddress.LEDs.length; i++) {
         let paperLED = paperAddress.LEDs[i]
+        paperLED.data.address = paperAddress
         paperLED.data.LEDindex = i
       }
       for (let i = 0; i < paperAddress.leads.length; i++) {
-        let paperLED = paperAddress.leads[i]
-        paperLED.data.leadIndex = i
+        let paperLead = paperAddress.leads[i]
+        paperLead.data.address = paperAddress
+        paperLead.data.leadIndex = i
       }
     }
   }

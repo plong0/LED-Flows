@@ -77,7 +77,8 @@
           deleteLead: this.deleteLead,
           deleteLED: this.deleteLED,
           moveLead: this.moveLead,
-          moveLED: this.moveLED
+          moveLED: this.moveLED,
+          transferLeads: this.transferLeads
         },
         theme: {
           'LED-style-fillColor': this.$vuetify.theme.secondary,
@@ -174,6 +175,9 @@
       onLedMoved (light, address, index, position) {
         this.lightMap.onLedMoved(light, address, index, position)
       },
+      onLeadsTransferred (light, from, to, start, count, insert) {
+        this.lightMap.onLeadsTransferred(light, from, to, start, count, insert)
+      },
       onLightActivated (light) {
         this.lightMap.onLightActivated(light)
       },
@@ -210,9 +214,20 @@
           case 'Lights/SHIFT_ADDRESSES':
             this.onAddressesShifted(payload.light, payload.from, payload.amount)
             break
+          case 'Lights/TRANSFER_LEADS':
+            this.onLeadsTransferred(payload.light, payload.from, payload.to, payload.start, payload.count, payload.insert)
+            break
           case 'UI/ACTIVATE_LIGHT':
             this.onLightActivated(payload)
             break
+        }
+      },
+      transferLeads (light, from, to, start, count, insert) {
+        if (!light) {
+          light = this.activeLight
+        }
+        if (light) {
+          this.$store.dispatch('Lights/transferLeads', { light, from, to, start, count, insert })
         }
       }
     }

@@ -21,7 +21,8 @@ export default class PaperLights {
         deleteLead: this.$deleteLead,
         deleteLED: this.$deleteLED,
         moveLead: this.$moveLead,
-        moveLED: this.$moveLED
+        moveLED: this.$moveLED,
+        transferLeads: this.$transferLeads
       },
       ...actions
     }
@@ -65,6 +66,9 @@ export default class PaperLights {
     // TODO: implement default handler (stand-alone model)
   }
   $moveLED (light, address, index, delta) {
+    // TODO: implement default handler (stand-alone model)
+  }
+  $transferLeads (light, from, to, start, count, insert) {
     // TODO: implement default handler (stand-alone model)
   }
   get activeAddress () {
@@ -278,6 +282,12 @@ export default class PaperLights {
       light.onLedMoved(address, index, position)
     }
   }
+  onLeadsTransferred (light, from, to, start, count, insert) {
+    light = this.assertLight(light)
+    if (light) {
+      light.onLeadsTransferred(from, to, start, count, insert)
+    }
+  }
   onLightsAdded (lights) {
     for (const light of lights) {
       // uses .entries() to get iterator with key and value
@@ -305,5 +315,8 @@ export default class PaperLights {
   }
   selectPaperLight () {
     // TODO: select by paperLight item (if PaperLight renders any...)
+  }
+  transferLeads (light, from, to, start, count, insert) {
+    return this.$actions.transferLeads((light !== null ? light : this.activeLight), from, to, start, count, insert)
   }
 }

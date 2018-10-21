@@ -165,6 +165,10 @@ const mutations = {
       LEDs: []
     }))
     light.LEDs.splice(from, 0, ...newLEDs)
+  },
+  TRANSFER_LEADS (state, { light, from, to, start, count, insert }) {
+    const leads = light.LEDs[from].leads.splice(start, count || light.LEDs[from].leads.length)
+    light.LEDs[to].leads.splice(insert, 0, ...leads)
   }
 }
 
@@ -248,12 +252,18 @@ const actions = {
       }
     }
   },
-  deleteLED ({ commit, getters }, { light: { id, ..._light }, address, index }) {
+  deleteLED ({ commit, dispatch, getters }, { light: { id, ..._light }, address, index }) {
     const light = getters.light(id)
     if (light && address >= 0 && address < light.LEDs.length && index >= 0 && index < light.LEDs[address].LEDs.length) {
       commit('DELETE_LED', { light, address, index })
-      if (!light.LEDs[address].LEDs.length && !light.LEDs[address].leads.length) {
-        commit('DELETE_ADDRESS', { light, address })
+      if (!light.LEDs[address].LEDs.length) {
+        if (light.LEDs[address].leads.length) {
+          dispatch('transferLeads', { light, from: address, to: address + 1 }).then(() => {
+            commit('DELETE_ADDRESS', { light, address })
+          })
+        } else {
+          commit('DELETE_ADDRESS', { light, address })
+        }
       }
     }
   },
@@ -295,6 +305,12 @@ const actions = {
       }
       commit('SET_LIGHT', light)
       return light
+    }
+  },
+  transferLeads ({ commit, getters }, { light: { id, ..._light }, from, to, start = 0, count, insert = 0 }) {
+    const light = getters.light(id)
+    if (light && from >= 0 && from < light.LEDs.length && to >= 0 && to < light.LEDs.length && start < light.LEDs[from].leads.length) {
+      commit('TRANSFER_LEADS', { light, from, to, start, count, insert })
     }
   },
   updateLight ({ commit, getters }, { id, ...updates }) {

@@ -8,7 +8,7 @@ export default class Default extends PaperLightTool {
       activeLED: null,
       hoverLine: null,
       insertMode: null,
-      shiftCloned: false,
+      shiftAdded: false,
       singleClickTimer: null,
       lastPoint: {
         mouseMove: null
@@ -35,7 +35,7 @@ export default class Default extends PaperLightTool {
       this.$state.activeLED = null
       this.$state.hoverLine = null
       this.$state.insertMode = null
-      this.$state.shiftCloned = false
+      this.$state.shiftAdded = false
       this.clearTempLED()
       this.clearTempLead()
     }
@@ -47,13 +47,7 @@ export default class Default extends PaperLightTool {
     }
     this.clearTempLED = () => {
       if (this.$state.tempLED) {
-        for (let i = 0; i < this.$state.tempLED.leads.length; i++) {
-          this.$PL.deleteLead(this.$state.tempLED.light, this.$state.tempLED.address, 0)
-        }
         this.$PL.deleteLED(this.$state.tempLED.light, this.$state.tempLED.address, 0)
-        for (let i = this.$state.tempLED.leads.length - 1; i >= 0; i--) {
-          this.$PL.addLead(this.$state.tempLED.leads[i], this.$state.tempLED.address, 0, this.$state.tempLED.light)
-        }
         this.$state.tempLED = null
       }
     }
@@ -62,7 +56,7 @@ export default class Default extends PaperLightTool {
         this.$state.tempLead = {
           light: this.$state.hoverLine.light,
           address: this.$state.hoverLine.address,
-          leadIndex: 0
+          leadIndex: this.$state.hoverLine.addressIndex || 0
         }
         this.$PL.addLead(this.$state.lastPoint.mouseMove, this.$state.tempLead.address, this.$state.tempLead.leadIndex, this.$state.tempLead.light)
       }
@@ -75,19 +69,11 @@ export default class Default extends PaperLightTool {
           addressIndex: this.$state.hoverLine.addressIndex,
           leads: []
         }
-        if (this.$state.hoverLine.addressIndex) {
-          let address = this.$state.hoverLine.light.LEDs[this.$state.hoverLine.address]
-          if (address) {
-            this.$state.tempLED.leads = address.leads.slice(0, this.$state.hoverLine.addressIndex)
-            for (let i = 0; i < this.$state.tempLED.leads.length; i++) {
-              this.$PL.deleteLead(this.$state.tempLED.light, this.$state.tempLED.address, 0)
-            }
+        this.$PL.addLED(this.$state.lastPoint.mouseMove, this.$state.tempLED.address, this.$state.tempLED.light).then(() => {
+          if (this.$state.hoverLine.addressIndex) {
+            this.$PL.transferLeads(this.$state.hoverLine.light, this.$state.tempLED.address + 1, this.$state.tempLED.address, 0, this.$state.hoverLine.addressIndex, 0)
           }
-        }
-        this.$PL.addLED(this.$state.lastPoint.mouseMove, this.$state.tempLED.address, this.$state.tempLED.light)
-        for (let i = 0; i < this.$state.tempLED.leads.length; i++) {
-          this.$PL.addLead(this.$state.tempLED.leads[i], this.$state.tempLED.address, i, this.$state.tempLED.light)
-        }
+        })
       }
     }
     this.handleSingleClick = () => {
@@ -120,7 +106,18 @@ export default class Default extends PaperLightTool {
       }
       return false
     }
-    this.refreshTempLED = () => {
+    this.refreshInsertMode = () => {
+      if (this.pressedKeys.includes('shift')) {
+        if (this.pressedKeys.includes('control')) {
+          this.setInsertMode('lead')
+        } else {
+          this.setInsertMode('LED')
+        }
+      } else {
+        this.setInsertMode()
+      }
+    }
+    this.refreshTempInsert = () => {
       if (this.$state.hoverLine && this.$state.insertMode) {
         if (this.$state.insertMode === 'lead') {
           if (!this.$state.tempLead) {
@@ -149,6 +146,9 @@ export default class Default extends PaperLightTool {
       }
     }
     this.setInsertMode = (mode = null) => {
+      if (mode === this.$state.insertMode) {
+        return
+      }
       if (mode === 'LED') {
         this.clearTempLead()
         if (!this.$state.tempLED) {
@@ -175,22 +175,16 @@ export default class Default extends PaperLightTool {
         if (this.baseEvents.onKeyDown(event)) {
           return true
         }
-        if (event.key === 'shift') {
-          this.setInsertMode('LED')
-        }
-        if (event.key === 'control') {
-          this.setInsertMode('lead')
+        if (['shift', 'control'].includes(event.key)) {
+          this.refreshInsertMode()
         }
       },
       onKeyUp: (event) => {
         if (this.baseEvents.onKeyUp(event)) {
           return true
         }
-        if (event.key === 'shift') {
-          this.setInsertMode()
-        }
-        if (event.key === 'control') {
-          this.setInsertMode()
+        if (['shift', 'control'].includes(event.key)) {
+          this.refreshInsertMode()
         }
       },
       onMouseDown: (event) => {
@@ -199,7 +193,7 @@ export default class Default extends PaperLightTool {
           this.$state.tempLED = null
           this.$state.tempLead = null
           // also prevent a duplicate being created on mouse drag
-          this.$state.shiftCloned = true
+          this.$state.shiftAdded = true
         }
         const hit = this.$PL.hitTestAtPoint(this.$PL.normalizePoint(event.downPoint))
         this.$state.activeLED = null
@@ -218,13 +212,13 @@ export default class Default extends PaperLightTool {
       onMouseDrag: (event) => {
         if (this.$state.activeLED) {
           const LED = this.$state.activeLED.data
-          if (this.pressedKeys.includes('shift') && !this.$state.shiftCloned) {
+          if (this.pressedKeys.includes('shift') && !this.$state.shiftAdded) {
             const point = this.$PL.normalizePoint(event.point)
             this.$PL.addLED(point, LED.address.id, LED.light, true).then(() => {
               this.$state.activeLED = LED.address.LEDs[LED.address.LEDs.length - 1]
             })
             this.$state.activeLED = null
-            this.$state.shiftCloned = true
+            this.$state.shiftAdded = true
           } else {
             const delta = this.$PL.normalizePoint(event.delta)
             this.$PL.moveLED(delta, LED.light, LED.address.id, LED.LEDindex)
@@ -265,11 +259,7 @@ export default class Default extends PaperLightTool {
         } else if (this.$state.hoverLine) {
           this.$state.hoverLine = null
         }
-        if (this.$state.hoverLine && this.pressedKeys.includes('shift')) {
-          this.refreshTempLED()
-        } else if (this.$state.tempLED) {
-          this.clearTempLED()
-        }
+        this.refreshTempInsert()
         this.clearSingleClickTimer(true)
       },
       onMouseUp: (event) => {
@@ -287,7 +277,7 @@ export default class Default extends PaperLightTool {
         } else if (this.$state.activeLED) {
           this.$state.activeLED = null
         }
-        this.$state.shiftCloned = false
+        this.$state.shiftAdded = false
         this.$state.lastTime.mouseUp = event.timeStamp
       }
     }
