@@ -81,6 +81,7 @@
           transferLeads: this.transferLeads
         },
         theme: {
+          'Lead-style-strokeColor': this.$vuetify.theme.primary,
           'LED-style-fillColor': this.$vuetify.theme.secondary,
           'LED-style-strokeColor': '',
           'Light-Line-style-strokeColor': this.$vuetify.theme.primary,

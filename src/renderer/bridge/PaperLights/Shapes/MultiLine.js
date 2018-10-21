@@ -105,7 +105,7 @@ export default class MultiLine extends Group {
       index = this.checkMultiPoint(index, 1)
     }
     this.checkMultiPoint = (index, direction) => {
-      if (!direction) {
+      if (!direction || !this.data.multiPoints.length) {
         return
       }
       if (index >= this.data.multiPoints.length - 1 && this.data.multiPoints[this.data.multiPoints.length - 1].constructor.name === 'Point') {

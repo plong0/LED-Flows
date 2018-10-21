@@ -8,6 +8,9 @@ export default class PaperLightsTheme {
       'LED-style-fillColor': 'blue',
       'LED-style-strokeColor': 'white',
       'LED-style-strokeWidth': 1.0,
+      'Lead-radius': 6,
+      'Lead-style-strokeColor': 'yellow',
+      'Lead-style-strokeWidth': 1.0,
       'Light-Line-style-strokeColor': 'yellow',
       'Light-Line-style-strokeColor-alpha': 0.6,
       'Light-Line-style-strokeWidth': 3.0
@@ -20,6 +23,9 @@ export default class PaperLightsTheme {
   }
   set dirty (dirty) {
     this.$dirty = dirty
+  }
+  get styleForLead () {
+    return this.getStyleStartsWith('Lead-style-')
   }
   get styleForLED () {
     return this.getStyleStartsWith('LED-style-')

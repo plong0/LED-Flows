@@ -5,6 +5,7 @@ export default class Default extends PaperLightTool {
     super(paperLights)
     this.$doubleClickTime = 300
     this.$state = {
+      activeLead: null,
       activeLED: null,
       hoverLine: null,
       insertMode: null,
@@ -32,6 +33,7 @@ export default class Default extends PaperLightTool {
       }
     }
     this.clearState = () => {
+      this.$state.activeLead = null
       this.$state.activeLED = null
       this.$state.hoverLine = null
       this.$state.insertMode = null
@@ -77,20 +79,19 @@ export default class Default extends PaperLightTool {
       }
     }
     this.handleSingleClick = () => {
-      if (!this.$state.activeLED) {
-        return
-      }
-      const LED = this.$state.activeLED.data
-      let params = {
-        targetPoint: this.$state.lastPoint.mouseMove
-      }
-      if (LED.address.id === 0) {
-        params.toStart = true
-      }
-      if (LED.address.id === (LED.light.LEDs.length - 1)) {
-        this.$PL.activateTool('AddLed', params)
-      } else if (LED.address.id === 0) {
-        this.$PL.activateTool('AddLed', params)
+      if (this.$state.activeLED) {
+        const LED = this.$state.activeLED.data
+        let params = {
+          targetPoint: this.$state.lastPoint.mouseMove
+        }
+        if (LED.address.id === 0) {
+          params.toStart = true
+        }
+        if (LED.address.id === (LED.light.LEDs.length - 1)) {
+          this.$PL.activateTool('AddLed', params)
+        } else if (LED.address.id === 0) {
+          this.$PL.activateTool('AddLed', params)
+        }
       }
       this.clearSingleClickTimer()
     }
@@ -197,12 +198,16 @@ export default class Default extends PaperLightTool {
         }
         const hit = this.$PL.hitTestAtPoint(this.$PL.normalizePoint(event.downPoint))
         this.$state.activeLED = null
+        this.$state.activeLead = null
         if (hit && hit.item) {
           if (hit.item.data && hit.item.data.light) {
             this.$PL.activateLight(hit.item.data.light)
           }
           if (hit.item.data && hit.item.data.LED) {
             this.$state.activeLED = hit.item
+          }
+          if (hit.item.data && hit.item.data.lead) {
+            this.$state.activeLead = hit.item
           }
         } else {
           this.$PL.activateLight()
@@ -213,6 +218,7 @@ export default class Default extends PaperLightTool {
         if (this.$state.activeLED) {
           const LED = this.$state.activeLED.data
           if (this.pressedKeys.includes('shift') && !this.$state.shiftAdded) {
+            // clone an LED
             const point = this.$PL.normalizePoint(event.point)
             this.$PL.addLED(point, LED.address.id, LED.light, true).then(() => {
               this.$state.activeLED = LED.address.LEDs[LED.address.LEDs.length - 1]
@@ -220,9 +226,16 @@ export default class Default extends PaperLightTool {
             this.$state.activeLED = null
             this.$state.shiftAdded = true
           } else {
+            // move an LED
             const delta = this.$PL.normalizePoint(event.delta)
             this.$PL.moveLED(delta, LED.light, LED.address.id, LED.LEDindex)
           }
+        }
+        if (this.$state.activeLead) {
+          const lead = this.$state.activeLead.data
+          // move a lead
+          const delta = this.$PL.normalizePoint(event.delta)
+          this.$PL.moveLead(delta, lead.light, lead.address.id, lead.leadIndex)
         }
         this.$state.lastTime.mouseDrag = event.timeStamp
       },
@@ -267,15 +280,27 @@ export default class Default extends PaperLightTool {
           // double click
           this.clearSingleClickTimer()
           if (this.$state.activeLED) {
+            // double click on LED, delete it
             const LED = this.$state.activeLED.data
             this.$PL.deleteLED(LED.light, LED.address.id, LED.LEDindex)
           }
-        } else if (!this.isStale('mouseDown', ['mouseDrag', 'mouseMove']) && this.$state.activeLED) {
+          if (this.$state.activeLead) {
+            // double click on lead, delete it
+            const lead = this.$state.activeLead.data
+            this.$PL.deleteLead(lead.light, lead.address.id, lead.leadIndex)
+          }
+        } else if (!this.isStale('mouseDown', ['mouseDrag', 'mouseMove'])) {
           // single click, run after a short delay to allow double-click opportunity
           this.clearSingleClickTimer()
           this.$state.singleClickTimer = setTimeout(this.handleSingleClick, this.$doubleClickTime + 1)
-        } else if (this.$state.activeLED) {
-          this.$state.activeLED = null
+        } else {
+          // mouse released after a drag or move
+          if (this.$state.activeLED) {
+            this.$state.activeLED = null
+          }
+          if (this.$state.activeLead) {
+            this.$state.activeLead = null
+          }
         }
         this.$state.shiftAdded = false
         this.$state.lastTime.mouseUp = event.timeStamp

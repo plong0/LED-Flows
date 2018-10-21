@@ -258,9 +258,11 @@ const actions = {
       commit('DELETE_LED', { light, address, index })
       if (!light.LEDs[address].LEDs.length) {
         if (light.LEDs[address].leads.length) {
-          dispatch('transferLeads', { light, from: address, to: address + 1 }).then(() => {
-            commit('DELETE_ADDRESS', { light, address })
-          })
+          if (address < getters.addressCount(light.id) - 1) {
+            dispatch('transferLeads', { light, from: address, to: address + 1 }).then(() => {
+              commit('DELETE_ADDRESS', { light, address })
+            })
+          }
         } else {
           commit('DELETE_ADDRESS', { light, address })
         }

@@ -85,7 +85,9 @@ export default class PaperLight {
     if (this.$PL.assertPaper()) {
       const paperAddress = this.assertPaperAddress(address)
       if (paperAddress) {
-        const paperLead = new paper.Point(lead.x, lead.y)
+        // const paperLead = new paper.Point(lead.x, lead.y)
+        let paperLead = new paper.Shape.Circle(this.normalizePoint(lead), this.theme.get('Lead-radius'))
+        paperAddress.group.addChild(paperLead)
         paperAddress.leads.splice(index, 0, paperLead)
         if (!paperLead.data) {
           paperLead.data = {}
@@ -94,6 +96,7 @@ export default class PaperLight {
         paperLead.data.address = paperAddress
         paperLead.data.lead = lead
         paperLead.data.leadIndex = index
+        this.theme.apply(this.theme.styleForLead, paperLead)
         return this.refreshPaperLead(paperLead, lead, address, index)
       }
     }
@@ -247,6 +250,7 @@ export default class PaperLight {
         // Bad lead
       }
     }
+    this.refreshPaperAddressLeads(address)
   }
   onLedsAdded (address, LEDs) {
     const index = this.light.LEDs[address].LEDs.length - LEDs.length
@@ -266,6 +270,7 @@ export default class PaperLight {
     let paperLead = this.getPaperLead(address, index)
     let lineIndex = this.getLinePointIndex(address, index)
     if (paperLead) {
+      paperLead.remove()
       this.$paperLEDs[address].leads.splice(index, 1)
       this.refreshPaperAddress(address)
     }
@@ -286,6 +291,10 @@ export default class PaperLight {
     }
   }
   onLeadMoved (address, index, position) {
+    let paperLead = this.getPaperLead(address, index)
+    if (paperLead) {
+      paperLead.set({ position })
+    }
     if (this.$paperLine) {
       let lineIndex = this.getLinePointIndex(address, index)
       this.$paperLine.setMultiPoint(lineIndex, 0, position)
@@ -309,8 +318,9 @@ export default class PaperLight {
     if (paperFrom && paperTo && start >= 0 && start < paperFrom.leads.length) {
       const leads = paperFrom.leads.splice(start, count || paperFrom.leads.length)
       paperTo.leads.splice(insert || 0, 0, ...leads)
-      this.refreshPaperAddress(from)
+      paperTo.group.addChildren(leads)
       this.refreshPaperAddress(to)
+      this.refreshPaperAddress(from)
       if (this.$paperLine) {
         if (to !== from + 1 || insert !== 0 || paperFrom.LEDs.length) {
           // update paperLine on non-consecutive transfer
@@ -324,16 +334,31 @@ export default class PaperLight {
   }
   refreshPaperAddress (address) {
     const paperAddress = this.assertPaperAddress(address, false)
+    if (!paperAddress) {
+      return
+    }
     if (!paperAddress.LEDs.length && !paperAddress.leads.length) {
       this.$paperLEDs[address].group.remove()
       delete this.$paperLEDs[address]
       this.shiftPaperAddresses(address, -1)
     } else {
+      this.refreshPaperAddressLEDs(address)
+      this.refreshPaperAddressLeads(address)
+    }
+  }
+  refreshPaperAddressLEDs (address) {
+    const paperAddress = this.assertPaperAddress(address, false)
+    if (paperAddress && paperAddress.LEDs) {
       for (let i = 0; i < paperAddress.LEDs.length; i++) {
         let paperLED = paperAddress.LEDs[i]
         paperLED.data.address = paperAddress
         paperLED.data.LEDindex = i
       }
+    }
+  }
+  refreshPaperAddressLeads (address) {
+    const paperAddress = this.assertPaperAddress(address, false)
+    if (paperAddress && paperAddress.leads) {
       for (let i = 0; i < paperAddress.leads.length; i++) {
         let paperLead = paperAddress.leads[i]
         paperLead.data.address = paperAddress
@@ -355,6 +380,7 @@ export default class PaperLight {
           oldAddress.leads.splice(oldAddressIndex, 1)
         }
       }
+      paperAddress.group.addChild(paperLead)
       paperAddress.leads.splice(index, 0, paperLead)
       paperLead.data.address = paperAddress
       paperLead.data.leadIndex = index
