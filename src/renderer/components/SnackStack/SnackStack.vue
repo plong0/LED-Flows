@@ -43,19 +43,19 @@
     }),
     computed: {
       count () {
-        return this.$store.getters['Snacks/count']
+        return this.$store.getters['Snacks/count'];
       },
       color () {
-        return (this.current && (this.current.color || this.current.type))
+        return (this.current && (this.current.color || this.current.type));
       },
       dismissable () {
-        return (this.current && (this.current.dismissable || !this.current.timeout))
+        return (this.current && (this.current.dismissable || !this.current.timeout));
       },
       remaining () {
-        return (this.count - 1)
+        return (this.count - 1);
       },
       text () {
-        return (this.current && this.current.message)
+        return (this.current && this.current.message);
       }
     },
     props: {
@@ -97,68 +97,68 @@
       }
     },
     created () {
-      this.$store.subscribe(this.snackStoreUpdated)
+      this.$store.subscribe(this.snackStoreUpdated);
     },
     methods: {
       closeColor (color) {
-        return 'grey lighten-2'
+        return 'grey lighten-2';
       },
       consumeCurrent (chaining = false) {
         if (this.current) {
-          this.$store.dispatch('Snacks/consumeSnack', { snack: this.current, chaining })
+          this.$store.dispatch('Snacks/consumeSnack', { snack: this.current, chaining });
         }
       },
       nextSnack () {
         if (this.current) {
           // don't load the next one until current has been consumed
-          return
+          return;
         }
-        const snack = this.$store.getters['Snacks/nextSnack']
+        const snack = this.$store.getters['Snacks/nextSnack'];
         if (snack) {
-          this.current = snack
-          this.timeout = (snack.timeout || snack.timeout === 0) ? snack.timeout : this.defaultTimeout
-          this.visible = true
+          this.current = snack;
+          this.timeout = (snack.timeout || snack.timeout === 0) ? snack.timeout : this.defaultTimeout;
+          this.visible = true;
           if (this.timeout) {
             // roll our own snackbar timeout to expire without necessarily killing visibility
             this.expiryTimer = setTimeout(() => {
-              this.expiryTimer = undefined
-              this.consumeCurrent()
-            }, this.timeout)
+              this.expiryTimer = undefined;
+              this.consumeCurrent();
+            }, this.timeout);
           }
         }
       },
       resetCurrent () {
-        this.current = null
-        this.timeout = 0
-        this.visible = false
+        this.current = null;
+        this.timeout = 0;
+        this.visible = false;
         if (this.expiryTimer) {
-          clearTimeout(this.expiryTimer)
-          this.expiryTimer = undefined
+          clearTimeout(this.expiryTimer);
+          this.expiryTimer = undefined;
         }
       },
       snackStoreUpdated ({ type, payload }, state) {
         switch (type) {
           case 'Snacks/NEW_SNACK':
             // try to load it (nextSnack will ignore if necessary)
-            this.nextSnack()
-            break
+            this.nextSnack();
+            break;
           case 'Snacks/CONSUMED':
             if (payload.snack === this.current) {
-              this.resetCurrent()
+              this.resetCurrent();
               if ((this.chaining && payload.chaining) || this.immediateNext) {
                 // if chaining is enabled, proceed immediately to show next
-                this.nextSnack()
+                this.nextSnack();
               } else {
                 // no chaining, delay showing the next
                 // (even timeout of 0 waits until next tick before refreshing DOM with visible = true)
                 setTimeout(() => {
-                  this.nextSnack()
-                }, this.delayNext)
+                  this.nextSnack();
+                }, this.delayNext);
               }
             }
-            break
+            break;
         }
       }
     }
-  }
+  };
 </script>

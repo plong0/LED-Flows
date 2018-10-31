@@ -17,7 +17,7 @@
 </template>
 
 <script>
-  import Coordinates from '@/components/Geometry/Coordinates'
+  import Coordinates from '@/components/Geometry/Coordinates';
 
   export default {
     components: { Coordinates },
@@ -26,27 +26,27 @@
         type: Object,
         required: true,
         validator: (light) => {
-          return (light && light.hasOwnProperty('id') && Array.isArray(light.LEDs))
+          return (light && light.hasOwnProperty('id') && Array.isArray(light.LEDs));
         }
       }
     },
     computed: {
       addressCount () {
-        return this.$store.getters['Lights/addressCount'](this.light.id)
+        return this.$store.getters['Lights/addressCount'](this.light.id);
       },
       firstAddress () {
-        return this.$store.getters['Lights/addressFirst'](this.light.id)
+        return this.$store.getters['Lights/addressFirst'](this.light.id);
       },
       lastAddress () {
-        return this.$store.getters['Lights/addressLast'](this.light.id)
+        return this.$store.getters['Lights/addressLast'](this.light.id);
       },
       ledCount () {
-        return this.$store.getters['Lights/ledCount'](this.light.id)
+        return this.$store.getters['Lights/ledCount'](this.light.id);
       },
       location () {
-        const bounds = this.$store.getters['Lights/bounds'](this.light.id)
-        return bounds.center
+        const bounds = this.$store.getters['Lights/bounds'](this.light.id);
+        return bounds.center;
       }
     }
-  }
+  };
 </script>

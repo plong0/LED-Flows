@@ -86,7 +86,7 @@
 </template>
 
 <script>
-  import SnackStack from '@/components/SnackStack/SnackStack'
+  import SnackStack from '@/components/SnackStack/SnackStack';
 
   export default {
     name: 'led-flows',
@@ -108,52 +108,52 @@
           '--theme-secondary': this.$vuetify.theme.secondary,
           '--theme-accent': this.$vuetify.theme.accent,
           '--theme-accent2': this.$vuetify.theme.accent2
-        }
+        };
       },
       routePath () {
-        return this.$route.path
+        return this.$route.path;
       },
       managerEnabled () {
-        return this.routeHasView('manager')
+        return this.routeHasView('manager');
       },
       leftDrawerMini () {
-        return this.$vuetify.breakpoint.smAndDown
+        return this.$vuetify.breakpoint.smAndDown;
       },
       rightDrawerMini () {
-        return this.$vuetify.breakpoint.smAndDown
+        return this.$vuetify.breakpoint.smAndDown;
       },
       rightDrawerWidth () {
         if (this.$vuetify.breakpoint.lgAndUp) {
-          return 500
+          return 500;
         } else if (this.$vuetify.breakpoint.mdAndUp) {
-          return 400
+          return 400;
         }
-        return 300
+        return 300;
       }
     },
     methods: {
       routeHasView (view) {
         for (let route of this.$route.matched) {
           if (route.components[view]) {
-            return true
+            return true;
           }
         }
-        return false
+        return false;
       },
       routeMatches (to) {
         if (this.$route.matched.length) {
-          const route = this.$route.matched[this.$route.matched.length - 1]
-          return (route.path.startsWith(to))
+          const route = this.$route.matched[this.$route.matched.length - 1];
+          return (route.path.startsWith(to));
         }
-        return false
+        return false;
       },
       toggleRightDrawer (from, to) {
         if (from === to || !this.rightDrawerOpen) {
-          this.rightDrawerOpen = !this.rightDrawerOpen
+          this.rightDrawerOpen = !this.rightDrawerOpen;
         }
       }
     }
-  }
+  };
 </script>
 
 <style>

@@ -14,11 +14,11 @@
     computed: {
       className () {
         if (['xs', 'sm', 'md', 'lg', 'xl'].includes(this.size)) {
-          return `size-context size-context-${this.size}`
+          return `size-context size-context-${this.size}`;
         }
       }
     }
-  }
+  };
 </script>
 
 <style lang="stylus">

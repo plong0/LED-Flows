@@ -25,8 +25,8 @@
 </template>
 
 <script>
-  import LightDetails from './LightDetails'
-  import LightLeds from './LightLeds'
+  import LightDetails from './LightDetails';
+  import LightLeds from './LightLeds';
 
   export default {
     components: { LightDetails, LightLeds },
@@ -38,7 +38,7 @@
         type: Object,
         required: true,
         validator: (light) => {
-          return (light && light.hasOwnProperty('id') && Array.isArray(light.LEDs))
+          return (light && light.hasOwnProperty('id') && Array.isArray(light.LEDs));
         }
       },
       onClose: {
@@ -48,19 +48,19 @@
     computed: {
       addressOffset () {
         if (typeof this.firstAddress === 'number') {
-          return this.firstAddress
+          return this.firstAddress;
         }
-        return 0
+        return 0;
       },
       firstAddress () {
-        return this.$store.getters['Lights/addressFirst'](this.light.id)
+        return this.$store.getters['Lights/addressFirst'](this.light.id);
       },
       maxVisibleLEDs () {
         if (this.$vuetify.breakpoint.lgAndUp) {
-          return 30
+          return 30;
         }
-        return 24
+        return 24;
       }
     }
-  }
+  };
 </script>

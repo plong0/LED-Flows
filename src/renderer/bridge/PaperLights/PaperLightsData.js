@@ -12,7 +12,7 @@ const PaperLightsData = {
     PaperLightsData.hasID(light) && Array.isArray(light.LEDs)
   ),
   isPoint: (value) => {
-    return value && !isNaN(value.x) && !isNaN(value.y) && value.x !== null && value.y !== null
+    return value && !isNaN(value.x) && !isNaN(value.y) && value.x !== null && value.y !== null;
   }
-}
-export default PaperLightsData
+};
+export default PaperLightsData;

@@ -46,8 +46,8 @@
 </template>
 
 <script>
-  import { mapGetters } from 'vuex'
-  import LightCard from './LightCard'
+  import { mapGetters } from 'vuex';
+  import LightCard from './LightCard';
 
   export default {
     name: 'light-manager',
@@ -59,36 +59,36 @@
     computed: {
       absoluteStyle () {
         if (this.lightLoaded) {
-          return { position: 'absolute', left: 0, right: 0 }
+          return { position: 'absolute', left: 0, right: 0 };
         }
       },
       light () {
         if (this.lightID !== null) {
-          return this.$store.getters['Lights/light'](this.lightID)
+          return this.$store.getters['Lights/light'](this.lightID);
         }
-        return {}
+        return {};
       },
       lightLoaded () {
-        return (this.lightSelected && this.lightID === this.activeID)
+        return (this.lightSelected && this.lightID === this.activeID);
       },
       lightSelected () {
-        return (this.activeID !== null)
+        return (this.activeID !== null);
       },
       message () {
-        return `${this.lights.length ? 'Select' : 'Add'} a light to ${this.lights.length ? 'continue' : 'start'} the magic.`
+        return `${this.lights.length ? 'Select' : 'Add'} a light to ${this.lights.length ? 'continue' : 'start'} the magic.`;
       },
       ...mapGetters({
         lights: 'Lights/lights'
       })
     },
     created () {
-      this.$store.subscribe(this.storeUpdated)
+      this.$store.subscribe(this.storeUpdated);
     },
     methods: {
       addLight () {
         this.$store.dispatch('Lights/createLight').then(light => {
-          this.activeID = light.id
-        })
+          this.activeID = light.id;
+        });
       },
       addLED (light, address = null) {
         /** TODO: accept a location
@@ -96,61 +96,61 @@
           - auto-set compass to vector of last 2 addresses in Light
             - (multi-LED addresses should use an average of all their locations)
         */
-        let LED = { x: 0, y: 0 }
+        let LED = { x: 0, y: 0 };
         if (address !== null && light.LEDs.hasOwnProperty(address) && light.LEDs[address].LEDs.length) {
-          const lastLED = light.LEDs[address].LEDs[light.LEDs[address].LEDs.length - 1]
+          const lastLED = light.LEDs[address].LEDs[light.LEDs[address].LEDs.length - 1];
           LED = {
             x: lastLED.x,
             y: lastLED.y + 25
-          }
+          };
         }
-        return this.$store.dispatch('Lights/addLED', { light, address, LED })
+        return this.$store.dispatch('Lights/addLED', { light, address, LED });
       },
       closeLight () {
-        this.activeID = null
+        this.activeID = null;
       },
       lightTitle (light) {
         if (light && light.hasOwnProperty('id')) {
-          const firstAddress = this.$store.getters['Lights/addressFirst'](light.id)
-          const lastAddress = this.$store.getters['Lights/addressLast'](light.id)
-          return `[ ${firstAddress} - ${lastAddress} ] ~ ${light.name}`
+          const firstAddress = this.$store.getters['Lights/addressFirst'](light.id);
+          const lastAddress = this.$store.getters['Lights/addressLast'](light.id);
+          return `[ ${firstAddress} - ${lastAddress} ] ~ ${light.name}`;
         }
-        return ''
+        return '';
       },
       loadLight (lightID) {
         if (lightID === null) {
-          this.lightID = null
-          this.activeID = null
+          this.lightID = null;
+          this.activeID = null;
         } else if (this.light !== null) {
           // make a transition between lights by clearing it, then setting it on next tick
-          this.lightID = null
+          this.lightID = null;
           if (lightID !== null) {
             this.$nextTick(() => {
-              this.lightID = lightID
+              this.lightID = lightID;
               if (this.activeID !== lightID) {
-                this.activeID = lightID
+                this.activeID = lightID;
               }
-            })
+            });
           }
         } else {
-          this.lightID = lightID
+          this.lightID = lightID;
         }
       },
       onLightActivated (light) {
-        this.loadLight(light ? light.id : null)
+        this.loadLight(light ? light.id : null);
       },
       selectLight (lightID) {
-        this.$store.dispatch('UI/activateLight', { id: lightID })
+        this.$store.dispatch('UI/activateLight', { id: lightID });
       },
       storeUpdated ({ type, payload }, state) {
         switch (type) {
           case 'UI/ACTIVATE_LIGHT':
-            this.onLightActivated(payload)
-            break
+            this.onLightActivated(payload);
+            break;
         }
       }
     }
-  }
+  };
 </script>
 
 <style scoped>

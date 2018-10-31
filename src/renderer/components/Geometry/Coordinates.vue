@@ -25,15 +25,15 @@
     },
     computed: {
       coordinates () {
-        return `${this.coordinate(this.x)} , ${this.coordinate(this.y)}` + (!isNaN(this.z) ? ` , ${this.coordinate(this.z)}` : '')
+        return `${this.coordinate(this.x)} , ${this.coordinate(this.y)}` + (!isNaN(this.z) ? ` , ${this.coordinate(this.z)}` : '');
       }
     },
     methods: {
       coordinate (value) {
         if (typeof value === 'number') {
-          return value.toFixed(this.precision)
+          return value.toFixed(this.precision);
         }
       }
     }
-  }
+  };
 </script>

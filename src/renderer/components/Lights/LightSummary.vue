@@ -18,7 +18,7 @@
 </template>
 
 <script>
-  import LightDetails from './LightDetails'
+  import LightDetails from './LightDetails';
 
   export default {
     components: { LightDetails },
@@ -38,17 +38,17 @@
     watch: {
       light (light, oldLight) {
         if (light && oldLight && light !== oldLight) {
-          this.lightChanging = true
+          this.lightChanging = true;
           this.$nextTick(() => {
-            this.lightChanging = false
-          })
+            this.lightChanging = false;
+          });
         }
       }
     },
     computed: {
       lightLoaded () {
-        return (this.light && this.light.hasOwnProperty('id'))
+        return (this.light && this.light.hasOwnProperty('id'));
       }
     }
-  }
+  };
 </script>

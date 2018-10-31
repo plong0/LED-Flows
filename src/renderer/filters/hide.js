@@ -1,6 +1,6 @@
 export default function hide (value, condition) {
   if (condition) {
-    return ''
+    return '';
   }
-  return value
+  return value;
 }

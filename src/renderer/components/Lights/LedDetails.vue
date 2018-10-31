@@ -22,7 +22,7 @@
 </template>
 
 <script>
-  import Coordinates from '@/components/Geometry/Coordinates'
+  import Coordinates from '@/components/Geometry/Coordinates';
 
   export default {
     components: { Coordinates },
@@ -31,35 +31,35 @@
         type: Number,
         default: null,
         validator: (address) => {
-          return (address === null || typeof address === 'number')
+          return (address === null || typeof address === 'number');
         }
       },
       addressIndex: {
         type: Number,
         default: null,
         validator: (addressIndex) => {
-          return (addressIndex === null || typeof addressIndex === 'number')
+          return (addressIndex === null || typeof addressIndex === 'number');
         }
       },
       led: {
         type: Object,
         default: { x: 0, y: 0 },
         validator: (led) => {
-          return (led && led.hasOwnProperty('x') && led.hasOwnProperty('y'))
+          return (led && led.hasOwnProperty('x') && led.hasOwnProperty('y'));
         }
       },
       light: {
         type: Object,
         default: null,
         validator: (light) => {
-          return (light === null || typeof light === 'object')
+          return (light === null || typeof light === 'object');
         }
       },
       localAddress: {
         type: Number,
         default: null,
         validator: (localAddress) => {
-          return (localAddress === null || typeof localAddress === 'number')
+          return (localAddress === null || typeof localAddress === 'number');
         }
       },
       minWidth: {
@@ -69,20 +69,20 @@
     },
     computed: {
       hasAddress () {
-        return (this.address !== null)
+        return (this.address !== null);
       },
       hasAddresses () {
-        return (this.hasAddress || this.hasLocalAddress)
+        return (this.hasAddress || this.hasLocalAddress);
       },
       hasAddressIndex () {
-        return (this.addressIndex !== null)
+        return (this.addressIndex !== null);
       },
       hasLight () {
-        return (this.light !== null)
+        return (this.light !== null);
       },
       hasLocalAddress () {
-        return (this.localAddress !== null)
+        return (this.localAddress !== null);
       }
     }
-  }
+  };
 </script>

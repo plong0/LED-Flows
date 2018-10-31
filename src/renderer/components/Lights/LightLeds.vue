@@ -112,7 +112,7 @@
 </template>
 
 <script>
-  import LedDetails from './LedDetails'
+  import LedDetails from './LedDetails';
 
   export default {
     components: { LedDetails },
@@ -128,7 +128,7 @@
         type: Object,
         required: true,
         validator (light) {
-          return (light && light.hasOwnProperty('id') && Array.isArray(light.LEDs))
+          return (light && light.hasOwnProperty('id') && Array.isArray(light.LEDs));
         }
       },
       maxVisible: {
@@ -140,95 +140,95 @@
     }),
     computed: {
       LEDs () {
-        return (this.light && this.light.LEDs) || []
+        return (this.light && this.light.LEDs) || [];
       },
       hasNextPage () {
-        return (this.page < this.pageMax)
+        return (this.page < this.pageMax);
       },
       hasPreviousPage () {
-        return (this.page > 0)
+        return (this.page > 0);
       },
       pageCount () {
-        return (this.LEDs.length ? (this.pageMax + 1) : 0)
+        return (this.LEDs.length ? (this.pageMax + 1) : 0);
       },
       pageKey () {
-        return `led-page-${this.page}`
+        return `led-page-${this.page}`;
       },
       pageLimit () {
-        return (this.maxVisible || this.LEDs.length)
+        return (this.maxVisible || this.LEDs.length);
       },
       pageMax () {
         return ((this.pageLimit && this.LEDs.length)
           ? Math.floor((this.LEDs.length - 1) / this.pageLimit)
           : 0
-        )
+        );
       },
       pageOffset () {
-        return (this.page * this.pageLimit)
+        return (this.page * this.pageLimit);
       }
     },
     watch: {
       maxVisible () {
         if (this.pageCount && this.page > this.pageMax) {
-          this.gotoLastPage()
+          this.gotoLastPage();
         }
       }
     },
     created () {
-      this.$store.subscribe(this.storeUpdated)
+      this.$store.subscribe(this.storeUpdated);
     },
     methods: {
       extraLedsStyle (LEDs) {
-        const rows = 6
-        const columns = 3
-        const cellHeight = 40
-        const cellWidth = 44
+        const rows = 6;
+        const columns = 3;
+        const cellHeight = 40;
+        const cellWidth = 44;
 
         // limit the size of the popup
         let style = {
           maxHeight: (rows * cellHeight) + 'px',
           maxWidth: (columns * cellWidth) + 'px'
-        }
+        };
 
         // manually calculate width (https://stackoverflow.com/questions/33891709/when-flexbox-items-wrap-in-column-mode-container-does-not-grow-its-width)
-        style.width = (Math.ceil((LEDs.length + 1) / rows) * cellWidth) + 'px'
+        style.width = (Math.ceil((LEDs.length + 1) / rows) * cellWidth) + 'px';
 
         // give extra room for scrollbar when it overflows
         if (LEDs.length >= (rows * columns)) {
-          style.maxHeight = ((rows * cellHeight) + 20) + 'px'
+          style.maxHeight = ((rows * cellHeight) + 20) + 'px';
         }
 
-        return style
+        return style;
       },
       gotoFirstPage () {
-        this.page = 0
+        this.page = 0;
       },
       gotoLastPage () {
-        this.page = this.pageMax
+        this.page = this.pageMax;
       },
       gotoNextPage () {
         if (this.hasNextPage) {
-          this.page++
+          this.page++;
         }
       },
       gotoPreviousPage () {
         if (this.hasPreviousPage) {
-          this.page--
+          this.page--;
         }
       },
       lightAddressKey (light, address) {
-        return `address-${light.id}.${address}`
+        return `address-${light.id}.${address}`;
       },
       lightAddressIndexKey (light, address, index) {
-        return `led-${light.id}.${address}.${index}`
+        return `led-${light.id}.${address}.${index}`;
       },
       offsetAddress (value, external = false) {
-        return (this.pageOffset + value + (external ? this.addressOffset : 0))
+        return (this.pageOffset + value + (external ? this.addressOffset : 0));
       },
       onLedsAdded (light, address, LEDs) {
         // it should always be on the last page after adding new address
         if (address === (light.LEDs.length - 1) && this.hasNextPage) {
-          this.gotoLastPage()
+          this.gotoLastPage();
         }
       },
       storeUpdated ({ type, payload }, state) {
@@ -236,13 +236,13 @@
           case 'Lights/ADD_LEDS':
             // only handle the mutation if it was on our light
             if (payload.light && this.light && payload.light.id === this.light.id) {
-              this.onLedsAdded(payload.light, payload.address, payload.LEDs)
+              this.onLedsAdded(payload.light, payload.address, payload.LEDs);
             }
-            break
+            break;
         }
       }
     }
-  }
+  };
 </script>
 
 <style scoped>
