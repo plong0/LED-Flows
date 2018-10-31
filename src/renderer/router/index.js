@@ -15,12 +15,12 @@ export default new Router({
       }
     },
     {
-      path: '/led-map/currents',
-      alias: '/currents',
-      name: 'currents',
+      path: '/led-map/flows',
+      alias: '/flows',
+      name: 'flows',
       components: {
         default: require('@/components/LEDMap/LEDMap').default,
-        manager: require('@/components/Currents/CurrentManager').default
+        manager: require('@/components/Flows/FlowManager').default
       }
     },
     {

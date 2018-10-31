@@ -45,8 +45,8 @@
             :flat="!managerEnabled"
             icon
             color="secondary"
-            to="/currents"
-            @click.native.capture="toggleRightDrawer(routePath, '/currents')"
+            to="/flows"
+            @click.native.capture="toggleRightDrawer(routePath, '/flows')"
           >
             <v-icon>fa-ellipsis-h</v-icon>
           </v-btn>
