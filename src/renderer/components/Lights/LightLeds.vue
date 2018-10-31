@@ -99,6 +99,7 @@
       </v-flex>
     </v-layout>
     <v-layout v-if="addLED" row wrap justify-center class="mt-1">
+      <compass></compass>
       <v-btn
         round
         color="secondary"
@@ -113,9 +114,10 @@
 
 <script>
   import LedDetails from './LedDetails';
+  import Compass from '@/components/Geometry/Compass';
 
   export default {
-    components: { LedDetails },
+    components: { LedDetails, Compass },
     props: {
       addLED: {
         type: Function
