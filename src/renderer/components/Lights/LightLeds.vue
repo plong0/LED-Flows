@@ -99,7 +99,7 @@
       </v-flex>
     </v-layout>
     <v-layout v-if="addLED" row wrap justify-center class="mt-1">
-      <compass v-model="compass"></compass>
+      <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true"></compass>
       <v-btn
         round
         color="secondary"
@@ -262,5 +262,16 @@
     overflow-x: auto;
     border-radius: 4px;
     background-color: #616161;
+  }
+
+  >>> .compass > .needle > .point {
+    border: 0 none transparent;
+    background-color: var(--theme-primary);
+    width: 10px;
+    height: 10px;
+    top: -5px;
+    right: -10px;
+    opacity: 1;
+    border-radius: 50%;
   }
 </style>

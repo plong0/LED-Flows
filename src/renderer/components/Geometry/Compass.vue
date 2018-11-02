@@ -1,25 +1,65 @@
 <template>
-  <div class="compass" @click="mouseClicked" @mousemove="mouseMoved">
-    <div ref="needle" class="needle">
-      <div class="point"></div>
+  <div class="compass-wrapper">
+    <div class="compass" @click="mouseClicked" @mousemove="mouseMoved">
+      <div ref="needle" class="needle">
+        <div ref="point" class="point"></div>
+      </div>
+      <div ref="anchor" class="anchor"></div>
     </div>
-    <div ref="anchor" class="anchor"></div>
+    <div class="controls">
+      <input v-if="controlActive" type="checkbox" v-model="active" @change="setActive(active)" class="control-active" />
+      <input v-if="controlDistance" type="number" v-model="distance" @change="setDistance(distance)" class="control-distance" />
+      <span v-if="controlDistance && controlAngle">@</span>
+      <input v-if="controlAngle" type="number" v-model="angle" @change="setAngle(angle)" class="control-angle" />
+      <span v-if="controlAngle">&deg;</span>
+    </div>
   </div>
 </template>
 
 <script>
   export default {
     props: {
+      manualControls: {
+        type: [Boolean, Object],
+        default: true
+      },
+      rounding: {
+        type: [Boolean, Number, Object],
+        default: true
+      },
       value: {
         type: Object
+      }
+    },
+    computed: {
+      controlActive () {
+        return (this.manualControls === true || (typeof this.manualControls === 'object' && this.manualControls['active'] === true));
+      },
+      controlAngle () {
+        return (this.manualControls === true || (typeof this.manualControls === 'object' && this.manualControls['angle'] === true));
+      },
+      controlDistance () {
+        return (this.manualControls === true || (typeof this.manualControls === 'object' && this.manualControls['distance'] === true));
+      },
+      roundingAngle () {
+        return (typeof this.rounding === 'object' && this.rounding.hasOwnProperty('angle'))
+          ? this.rounding.angle
+          : this.rounding;
+      },
+      roundingDistance () {
+        return (typeof this.rounding === 'object' && this.rounding.hasOwnProperty('distance'))
+          ? this.rounding.distance
+          : this.rounding;
       }
     },
     data: () => ({
       active: false,
       angle: -90,
-      distance: 0
+      distance: 0,
+      defaultPointWidth: 0
     }),
     created () {
+      // initialize local data to given value prop (aka v-model)
       if (this.value) {
         if (this.value.hasOwnProperty('active')) {
           this.active = this.value.active;
@@ -32,6 +72,14 @@
         }
       }
     },
+    mounted () {
+      // read the initial rendered width of the point
+      this.defaultPointWidth = this.$refs.point.offsetWidth;
+      // call all setters so dynamic DOM styles are synchronized with model
+      this.setActive(this.active);
+      this.setAngle(this.angle);
+      this.setDistance(this.distance);
+    },
     methods: {
       fireEvent (type, detail) {
         this.$emit('input', {
@@ -40,18 +88,45 @@
           distance: this.distance
         });
       },
+      roundValue (value, rounding) {
+        if (rounding === true) {
+          // round to nearest integer
+          return Math.round(value);
+        } else if (Number.isInteger(rounding)) {
+          // round to fixed number of decimal places
+          // source: http://www.jacklmoore.com/notes/rounding-in-javascript/
+          return Number(Math.round(`${value}e${rounding}`) + `e-${rounding}`);
+        }
+        // no rounding, return value as is
+        return value;
+      },
       setActive (active) {
         this.active = active;
         this.fireEvent('compassActive', { active });
       },
       setAngle (angle) {
+        angle = this.roundValue(angle, this.roundingAngle);
         this.angle = angle;
         this.$refs.needle.style.transform = `translateY(-50%) rotateZ(${this.angle}deg)`;
         this.fireEvent('compassAngle', { angle });
       },
       setDistance (distance) {
+        distance = this.roundValue(distance, this.roundingDistance);
+        if (distance < 0) {
+          distance = 0;
+        }
         this.distance = distance;
-        this.$refs.needle.style.width = `${(this.distance - 15)}px`;
+        if (distance < this.defaultPointWidth) {
+          this.$refs.needle.style.width = '0px';
+          // shrink the point if needed
+          this.$refs.point.style.borderLeftWidth = `${this.distance}px`;
+          this.$refs.point.style.right = `${-this.distance}px`;
+        } else {
+          this.$refs.needle.style.width = `${this.distance - this.defaultPointWidth}px`;
+          // unshrink the point if distance is great enough
+          this.$refs.point.style.borderLeftWidth = `${this.defaultPointWidth}px`;
+          this.$refs.point.style.right = `${-this.defaultPointWidth}px`;
+        }
         this.fireEvent('compassDistance', { distance });
       },
       calculateAngle (p1, p2) {
