@@ -99,7 +99,7 @@
       </v-flex>
     </v-layout>
     <v-layout v-if="addLED" row wrap justify-center class="mt-1">
-      <compass></compass>
+      <compass v-model="compass"></compass>
       <v-btn
         round
         color="secondary"
@@ -138,7 +138,12 @@
       }
     },
     data: () => ({
-      page: 0
+      page: 0,
+      compass: {
+        active: false,
+        angle: 0,
+        distance: 0
+      }
     }),
     computed: {
       LEDs () {

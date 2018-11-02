@@ -9,15 +9,36 @@
 
 <script>
   export default {
+    props: {
+      value: {
+        type: Object
+      }
+    },
     data: () => ({
       active: false,
       angle: -90,
       distance: 0
     }),
+    created () {
+      if (this.value) {
+        if (this.value.hasOwnProperty('active')) {
+          this.active = this.value.active;
+        }
+        if (this.value.hasOwnProperty('angle')) {
+          this.angle = this.value.angle;
+        }
+        if (this.value.hasOwnProperty('distance')) {
+          this.distance = this.value.distance;
+        }
+      }
+    },
     methods: {
       fireEvent (type, detail) {
-        // DOM.compass.dispatchEvent(new CustomEvent(type, { detail: detail }));
-        // console.log(`FIRE EVENT [${type}] => `, detail);
+        this.$emit('input', {
+          active: this.active,
+          angle: this.angle,
+          distance: this.distance
+        });
       },
       setActive (active) {
         this.active = active;
@@ -77,8 +98,8 @@
 .compass {
   display: block;
   position: relative;
-  width: 150px;
-  height: 150px;
+  width: 75px;
+  height: 75px;
   border: 1px solid var(--theme-secondary);
   border-radius: 50%;
 }
