@@ -6,11 +6,11 @@
       </div>
       <div ref="anchor" class="anchor"></div>
     </div>
-    <div class="controls">
+    <div v-if="hasControls" class="controls">
       <input v-if="controlActive" type="checkbox" v-model="active" @change="setActive(active)" class="control-active" />
-      <input v-if="controlDistance" type="number" v-model="distance" @change="setDistance(distance)" class="control-distance" />
+      <input v-if="controlDistance" type="number" v-model="distance" @input="setDistance(distance)" class="control-distance" />
       <span v-if="controlDistance && controlAngle">@</span>
-      <input v-if="controlAngle" type="number" v-model="angle" @change="setAngle(angle)" class="control-angle" />
+      <input v-if="controlAngle" type="number" v-model="angle" @input="setAngle(angle)" class="control-angle" />
       <span v-if="controlAngle">&deg;</span>
     </div>
   </div>
@@ -27,7 +27,12 @@
         type: [Boolean, Number, Object],
         default: true
       },
+      shrinkPoint: {
+        type: Boolean,
+        default: true
+      },
       value: {
+        // provided by v-model
         type: Object
       }
     },
@@ -40,6 +45,9 @@
       },
       controlDistance () {
         return (this.manualControls === true || (typeof this.manualControls === 'object' && this.manualControls['distance'] === true));
+      },
+      hasControls () {
+        return (this.controlActive || this.controlAngle || this.controlDistance);
       },
       roundingAngle () {
         return (typeof this.rounding === 'object' && this.rounding.hasOwnProperty('angle'))
@@ -116,16 +124,20 @@
           distance = 0;
         }
         this.distance = distance;
-        if (distance < this.defaultPointWidth) {
-          this.$refs.needle.style.width = '0px';
-          // shrink the point if needed
-          this.$refs.point.style.borderLeftWidth = `${this.distance}px`;
-          this.$refs.point.style.right = `${-this.distance}px`;
+        if (this.shrinkPoint) {
+          if (distance < this.defaultPointWidth) {
+            this.$refs.needle.style.width = '0px';
+            // shrink the point if needed
+            this.$refs.point.style.borderLeftWidth = `${this.distance}px`;
+            this.$refs.point.style.right = `${-this.distance}px`;
+          } else {
+            this.$refs.needle.style.width = `${this.distance - this.defaultPointWidth}px`;
+            // unshrink the point if distance is great enough
+            this.$refs.point.style.borderLeftWidth = `${this.defaultPointWidth}px`;
+            this.$refs.point.style.right = `${-this.defaultPointWidth}px`;
+          }
         } else {
-          this.$refs.needle.style.width = `${this.distance - this.defaultPointWidth}px`;
-          // unshrink the point if distance is great enough
-          this.$refs.point.style.borderLeftWidth = `${this.defaultPointWidth}px`;
-          this.$refs.point.style.right = `${-this.defaultPointWidth}px`;
+          this.$refs.needle.style.width = `${this.distance}px`;
         }
         this.fireEvent('compassDistance', { distance });
       },

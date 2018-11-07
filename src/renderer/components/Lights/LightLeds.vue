@@ -99,7 +99,7 @@
       </v-flex>
     </v-layout>
     <v-layout v-if="addLED" row wrap justify-center class="mt-1">
-      <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true"></compass>
+      <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false"></compass>
       <v-btn
         round
         color="secondary"
@@ -270,7 +270,7 @@
     width: 10px;
     height: 10px;
     top: -5px;
-    right: -10px;
+    right: -5px;
     opacity: 1;
     border-radius: 50%;
   }
