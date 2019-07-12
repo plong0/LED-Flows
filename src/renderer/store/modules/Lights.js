@@ -173,10 +173,10 @@ const mutations = {
 };
 
 const actions = {
-  addLead ({ dispatch }, { light, lead = { x: 0, y: 0 }, address = -1, index = -1 }) {
+  addLead ({ dispatch }, { light, lead = { x: 0, y: 0 }, address = null, index = null }) {
     return dispatch('addLeads', { light, address, index, leads: [lead] });
   },
-  addLeads ({ commit, getters, dispatch }, { light: { id, ..._light }, leads = [], address = -1, index = -1 }) {
+  addLeads ({ commit, getters, dispatch }, { light: { id, ..._light }, leads = [], address = null, index = null }) {
     leads = leads.filter(lead => lead);
     if (!leads.length) {
       return;
@@ -201,10 +201,10 @@ const actions = {
       });
     }
   },
-  addLED ({ dispatch }, { light, LED = { x: 0, y: 0 }, address = -1, stack = true }) {
+  addLED ({ dispatch }, { light, LED = { x: 0, y: 0 }, address = null, stack = true }) {
     return dispatch('addLEDs', { light, address, LEDs: [LED], stack });
   },
-  addLEDs ({ commit, getters, dispatch }, { light: { id, ..._light }, LEDs = [], address = -1, stack = true }) {
+  addLEDs ({ commit, getters, dispatch }, { light: { id, ..._light }, LEDs = [], address = null, stack = true }) {
     LEDs = LEDs.filter(LED => LED);
     if (!LEDs.length) {
       return;
@@ -217,6 +217,12 @@ const actions = {
       if (address < 0) {
         // push next address if none given
         address = light.LEDs.length;
+
+        // handle case of adding an LED to an address that doesn't have any yet
+        if (address && light.LEDs[address - 1] && !light.LEDs[address - 1].LEDs.length) {
+          address -= 1;
+          stack = true;
+        }
       }
       if (!stack && address < light.LEDs.length) {
         commit('SHIFT_ADDRESSES', { light, from: address, amount: LEDs.length });

@@ -125,18 +125,25 @@ export default class PaperLight {
     if (segmentAddress && this.$paperLEDs.hasOwnProperty(segmentAddress.address)) {
       const paperAddress = this.$paperLEDs[segmentAddress.address];
       if (segmentAddress.addressIndex === null) {
+        let linePoints = [];
+        if (paperAddress.LEDs.length) {
+          linePoints = paperAddress.LEDs.map((LED) => ({ x: LED.position.x, y: LED.position.y }));
+        } else if (paperAddress.leads.length) {
+          const lead = paperAddress.leads[paperAddress.leads.length - 1];
+          linePoints = [{ x: lead.position.x, y: lead.position.y }];
+        }
         // all LEDs
         return {
           address: paperAddress,
           LEDs: paperAddress.LEDs,
-          points: paperAddress.LEDs.map((LED) => ({ x: LED.position.x, y: LED.position.y }))
+          points: linePoints
         };
       } else if (segmentAddress.addressIndex >= 0 && segmentAddress.addressIndex < paperAddress.leads.length) {
         // a lead
         return {
           address: paperAddress,
           lead: paperAddress.leads[segmentAddress.addressIndex],
-          points: [{ x: paperAddress.leads[segmentAddress.addressIndex].x, y: paperAddress.leads[segmentAddress.addressIndex].y }]
+          points: [{ x: paperAddress.leads[segmentAddress.addressIndex].position.x, y: paperAddress.leads[segmentAddress.addressIndex].position.y }]
         };
       }
     }
@@ -200,6 +207,11 @@ export default class PaperLight {
           return {
             address: key,
             addressIndex: reverse ? (paperAddress.leads.length - offset) : offset
+          };
+        } else if (!paperAddress.LEDs.length) {
+          return {
+            address: key,
+            addressIndex: null
           };
         } else if (paperAddress.LEDs.length) {
           return {

@@ -79,17 +79,28 @@ export default class Default extends PaperLightTool {
       }
     };
     this.handleSingleClick = () => {
+      let target = null;
       if (this.$state.activeLED) {
         const LED = this.$state.activeLED.data;
+        target = LED;
+      } else if (this.$state.activeLead) {
+        const lead = this.$state.activeLead.data;
+        // check if the lead is at an end of the line
+        if ((lead.address.id === 0 && lead.leadIndex === 0) ||
+          (!lead.address.LEDs.length && lead.leadIndex === lead.address.leads.length - 1 && lead.address.id === lead.light.LEDs.length - 1)) {
+          target = lead;
+        }
+      }
+      if (target !== null) {
         let params = {
           targetPoint: this.$state.lastPoint.mouseMove
         };
-        if (LED.address.id === 0) {
+        if (target.address.id === 0 && !target.leadIndex) {
           params.toStart = true;
         }
-        if (LED.address.id === (LED.light.LEDs.length - 1)) {
+        if (target.address.id === (target.light.LEDs.length - 1)) {
           this.$PL.activateTool('AddLed', params);
-        } else if (LED.address.id === 0) {
+        } else if (target.address.id === 0) {
           this.$PL.activateTool('AddLed', params);
         }
       }
