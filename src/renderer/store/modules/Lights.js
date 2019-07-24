@@ -88,16 +88,88 @@ const getters = {
     }
     return bounds;
   },
-  ledCount: (state, getters) => (id) => {
+  point: (state, getters) => (id, index = -1) => {
     const light = getters.light(id);
-    if (light && light.LEDs.length) {
-      let count = 0;
+    const pointCount = getters.pointCount(id);
+    if (light && pointCount > 0) {
+      if (index < 0) {
+        index = pointCount + index;
+      }
+      if (index >= 0 && index < pointCount) {
+        let offset = 0;
+        for (let address of light.LEDs) {
+          if (address.leads.length && (index - offset) < address.leads.length) {
+            const lead = address.leads[(index - offset)];
+            return {
+              position: {
+                x: lead.x,
+                y: lead.y
+              },
+              lead
+            };
+          }
+          // advance offset over the leads
+          offset += address.leads.length;
+
+          // check if index met
+          if (offset >= index) {
+            if (!address.LEDs.length) {
+              break;
+            }
+            // calculate average x, y of address.LEDs
+            let averagePoint = {
+              x: 0,
+              y: 0
+            };
+            for (let LED of address.LEDs) {
+              averagePoint.x += LED.x;
+              averagePoint.y += LED.y;
+            }
+            if (address.LEDs.length) {
+              averagePoint.x /= address.LEDs.length;
+              averagePoint.y /= address.LEDs.length;
+            }
+            return {
+              position: averagePoint,
+              LEDs: address.LEDs
+            };
+          }
+          // advance offset over the LED
+          if (address.LEDs.length) {
+            // increment by only one because LEDs are stacked at an index
+            offset += 1;
+          }
+        }
+      }
+    }
+    // nothing found
+    return null;
+  },
+  pointCount: (state, getters) => (id) => {
+    let count = -1;
+    const light = getters.light(id);
+    if (light) {
+      count = 0;
+      for (let address of light.LEDs) {
+        count += address.leads.length;
+        if (address.LEDs.length) {
+          // count stacked LEDs as 1 point
+          count += 1;
+        }
+      }
+    }
+    return count;
+  },
+  ledCount: (state, getters) => (id) => {
+    let count = -1;
+    const light = getters.light(id);
+    if (light) {
+      count = 0;
       for (let address of light.LEDs) {
         count += address.LEDs.length;
       }
-      return count;
     }
-    return 0;
+    return count;
   },
   light: (state) => (id) => state.lights[id],
   lights: (state) => Object.keys(state.lights).sort((a, b) => (parseInt(a) - parseInt(b))).map(id => state.lights[id]),
