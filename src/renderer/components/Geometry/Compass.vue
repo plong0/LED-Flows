@@ -7,16 +7,28 @@
       <div ref="anchor" class="anchor"></div>
     </div>
     <div v-if="hasControls" class="controls">
-      <input v-if="controlActive" type="checkbox" v-model="active" @change="setActive(active)" class="control-active" />
-      <input v-if="controlDistance" type="number" v-model="distance" @input="setDistance(distance)" class="control-distance" />
-      <span v-if="controlDistance && controlAngle">@</span>
-      <input v-if="controlAngle" type="number" v-model="angle" @input="setAngle(angle)" class="control-angle" />
-      <span v-if="controlAngle">&deg;</span>
+      <v-checkbox v-if="controlActive" label="Activate Compass" v-model="active" @change="setActive(active)"></v-checkbox>
+      <v-text-field v-if="controlAngle" label="Angle" v-model="angle" @input="setAngle(angle)">
+        <template v-slot:append>&deg;</template>
+      </v-text-field>
+      <v-text-field v-if="controlDistance" label="Distance" v-model="distance" @input="setDistance(distance)"></v-text-field>
+      <!-- v-input label="Distance" -->
+        <!-- v-text-field v-if="controlAngle" label="Distance" v-model="distance" @input="setDistance(distance)"></v-text-field-->
+        <!-- v-input-number v-if="controlAngle" label="Distance" v-model="distance" @input="setDistance(distance)"></v-input-number-->
+        <!-- input v-if="controlDistance" type="number" v-model="distance" @input="" class="control-distance" />
+      </v-input-->
+
+      <!--input  type="checkbox" v-model="active" @change="setActive(active)" class="control-active" /-->
+      <!--input v-if="controlDistance" type="number" v-model="distance" @input="" class="control-distance" /-->
+      <!--input v-if="controlAngle" type="number" v-model="angle" @input="setAngle(angle)" class="control-angle" /-->
+      <!--span v-if="controlAngle">&deg;</span-->
     </div>
   </div>
 </template>
 
 <script>
+  import Geo from '@/utils/Geo';
+
   export default {
     props: {
       manualControls: {
@@ -96,30 +108,18 @@
           distance: this.distance
         });
       },
-      roundValue (value, rounding) {
-        if (rounding === true) {
-          // round to nearest integer
-          return Math.round(value);
-        } else if (Number.isInteger(rounding)) {
-          // round to fixed number of decimal places
-          // source: http://www.jacklmoore.com/notes/rounding-in-javascript/
-          return Number(Math.round(`${value}e${rounding}`) + `e-${rounding}`);
-        }
-        // no rounding, return value as is
-        return value;
-      },
       setActive (active) {
         this.active = active;
         this.fireEvent('compassActive', { active });
       },
       setAngle (angle) {
-        angle = this.roundValue(angle, this.roundingAngle);
+        angle = Geo.round(angle, this.roundingAngle);
         this.angle = angle;
         this.$refs.needle.style.transform = `translateY(-50%) rotateZ(${this.angle}deg)`;
         this.fireEvent('compassAngle', { angle });
       },
       setDistance (distance) {
-        distance = this.roundValue(distance, this.roundingDistance);
+        distance = Geo.round(distance, this.roundingDistance);
         if (distance < 0) {
           distance = 0;
         }
@@ -141,15 +141,6 @@
         }
         this.fireEvent('compassDistance', { distance });
       },
-      calculateAngle (p1, p2) {
-        return Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
-      },
-      calculateDistance (p1, p2) {
-        // shoutouts to the OG Pythagoras!
-        var dx = p2.x - p1.x;
-        var dy = p2.y - p1.y;
-        return Math.sqrt(dx * dx + dy * dy);
-      },
       getAnchorPoint () {
         var bounds = this.$refs.anchor.getBoundingClientRect();
         return {
@@ -169,8 +160,8 @@
           x: event.clientX,
           y: event.clientY
         };
-        this.setDistance(this.calculateDistance(anchor, point));
-        this.setAngle(this.calculateAngle(anchor, point));
+        this.setDistance(Geo.calculateDistance(anchor, point));
+        this.setAngle(Geo.calculateAngle(anchor, point));
         this.fireEvent('compassChanged', {
           active: this.active,
           angle: this.angle,
