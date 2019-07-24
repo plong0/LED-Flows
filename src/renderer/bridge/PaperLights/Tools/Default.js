@@ -95,7 +95,7 @@ export default class Default extends PaperLightTool {
         let params = {
           targetPoint: this.$state.lastPoint.mouseMove
         };
-        if (target.address.id === 0 && !target.leadIndex) {
+        if (target.address.id === 0 && target.address.LEDs.length > 1 && !target.leadIndex) {
           params.toStart = true;
         }
         if (target.address.id === (target.light.LEDs.length - 1)) {
