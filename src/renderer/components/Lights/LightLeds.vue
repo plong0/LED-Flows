@@ -100,10 +100,15 @@
     </v-layout>
     <v-layout v-if="addLED" row wrap justify-center class="mt-1">
       <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false"></compass>
+      <v-radio-group v-model="angleMode">
+        <v-radio label="Relative" value="relative"></v-radio>
+        <v-radio label="Absolute" value="absolute"></v-radio>
+      </v-radio-group>
+      <v-checkbox label="Add to start" v-model="addToStart"></v-checkbox>
       <v-btn
         round
         color="secondary"
-        @click="addLED(light)"
+        @click="addLED(light, null, addLocation, addToStart)"
       >
         <v-icon left>fa-plus</v-icon>
         Add LED
@@ -143,9 +148,21 @@
         active: false,
         angle: 0,
         distance: 0
-      }
+      },
+      addToStart: false,
+      angleMode: 'absolute'
     }),
     computed: {
+      addLocation () {
+        if (this.compass.distance !== 0) {
+          return {
+            angle: parseFloat(this.compass.angle),
+            distance: parseFloat(this.compass.distance),
+            angleMode: this.angleMode
+          };
+        }
+        return null;
+      },
       LEDs () {
         return (this.light && this.light.LEDs) || [];
       },

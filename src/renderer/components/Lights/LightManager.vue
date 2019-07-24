@@ -38,7 +38,7 @@
         </v-layout>
       </v-slide-y-transition>
       <v-scale-transition>
-        <light-card v-if="lightLoaded" :light="light" :addLED="addLED" :onClose="closeLight">
+        <light-card v-if="lightLoaded" :light="light" :addLED="addLED" :addLEDParams="addLEDParams" :onClose="closeLight">
         </light-card>
       </v-scale-transition>
     </v-flex>
@@ -46,6 +46,7 @@
 </template>
 
 <script>
+  import Geo from '@/utils/Geo';
   import { mapGetters } from 'vuex';
   import LightCard from './LightCard';
 
@@ -54,7 +55,16 @@
     components: { LightCard },
     data: () => ({
       activeID: null,
-      lightID: null
+      lightID: null,
+      addLEDParams: {
+        addToStart: false,
+        addMode: 'straight',
+        compass: {
+          active: false,
+          angle: 0,
+          distance: 0
+        }
+      }
     }),
     computed: {
       absoluteStyle () {
@@ -90,21 +100,64 @@
           this.activeID = light.id;
         });
       },
-      addLED (light, address = null) {
-        /** TODO: accept a location
-          - read location from last LED + compass
-          - auto-set compass to vector of last 2 addresses in Light
-            - (multi-LED addresses should use an average of all their locations)
-        */
+      addLED (light, address = null, location = null, toStart = false) {
+        // null address creates new LED
+        // address set where already existing with LEDs, forces stack
+        // null location auto-calculates angle + distance
         let LED = { x: 0, y: 0 };
-        if (address !== null && light.LEDs.hasOwnProperty(address) && light.LEDs[address].LEDs.length) {
+        let stack = false;
+        if (location !== null && typeof location === 'object') {
+          // if location definition given, use it
+          if (location.hasOwnProperty('x') && location.hasOwnProperty('y')) {
+            // specific x,y
+            LED = {
+              x: location.x,
+              y: location.y
+            };
+          } else if (location.hasOwnProperty('angle') && location.hasOwnProperty('distance')) {
+            const endPoint = this.$store.getters['Lights/point'](light.id, (toStart ? 0 : -1));
+            const offset = {
+              angle: location.angle,
+              distance: location.distance
+            };
+            if (location.angleMode === 'relative') {
+              // calculate angle of last two LEDs and add location.angle to it
+              const endPoint2 = this.$store.getters['Lights/point'](light.id, (toStart ? 1 : -2));
+              if (endPoint && endPoint2) {
+                const angle = Geo.calculateAngle(endPoint2.position, endPoint.position);
+                if (typeof angle !== 'undefined') {
+                  offset.angle += angle;
+                }
+              }
+            }
+            // convert angle to radians
+            offset.angle *= Math.PI / 180;
+            // add offset vector to last point
+            LED = Geo.addToPoint(endPoint.position, offset);
+          }
+        } else if (address !== null && light.LEDs.hasOwnProperty(address) && light.LEDs[address].LEDs.length) {
+          // auto-calculate when given an address to stack on
           const lastLED = light.LEDs[address].LEDs[light.LEDs[address].LEDs.length - 1];
           LED = {
             x: lastLED.x,
             y: lastLED.y + 25
           };
+          stack = true;
+        } else {
+          // default auto-calculate
+          const endPoint = this.$store.getters['Lights/point'](light.id, (toStart ? 0 : -1));
+          const endPoint2 = this.$store.getters['Lights/point'](light.id, (toStart ? 1 : -2));
+          if (endPoint && endPoint2) {
+            LED = {
+              x: endPoint.position.x + (endPoint.position.x - endPoint2.position.x),
+              y: endPoint.position.y + (endPoint.position.y - endPoint2.position.y)
+            };
+          }
         }
-        return this.$store.dispatch('Lights/addLED', { light, address, LED });
+        if (address === null && toStart) {
+          address = 0;
+        }
+        return this.$store.dispatch('Lights/addLED', { light, address, LED, stack });
       },
       closeLight () {
         this.activeID = null;
