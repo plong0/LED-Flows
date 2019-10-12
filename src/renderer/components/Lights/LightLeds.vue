@@ -14,7 +14,7 @@
       </v-flex>
       <v-flex xs9>
         <v-slide-x-transition leave-absolute>
-          <v-layout row wrap :key="pageKey">
+          <v-layout row wrap class="led-list" :style="{minHeight: pageMinHeight}" :key="pageKey">
             <v-flex
               xs2
               v-for="(address, addressIndex) in limitBy(LEDs, pageLimit, pageOffset)"
@@ -98,7 +98,7 @@
         </v-btn>
       </v-flex>
     </v-layout>
-    <v-layout v-if="addLED" row wrap justify-center class="mt-1">
+    <v-layout v-if="addLED" row wrap justify-center class="add-led mt-1">
       <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false"></compass>
       <v-radio-group v-model="angleMode">
         <v-radio label="Relative" value="relative"></v-radio>
@@ -187,6 +187,13 @@
           : 0
         );
       },
+      pageMinHeight () {
+        /**
+        min-height: 200px;
+        min-height: 160px;
+        */
+        return (this.maxVisible / 6 * 40) + 'px';
+      },
       pageOffset () {
         return (this.page * this.pageLimit);
       }
@@ -270,6 +277,10 @@
 </script>
 
 <style scoped>
+  .led-list {
+    align-content: flex-start;
+  }
+
   .extra-leds {
     position: absolute;
     z-index: 1;

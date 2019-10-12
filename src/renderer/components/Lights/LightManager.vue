@@ -18,7 +18,7 @@
       >
       </v-select>
     </v-flex>
-    <v-flex :style="{ position: 'relative' }">
+    <v-flex class="light">
       <v-slide-y-transition>
         <div v-show="!lightSelected" :style="absoluteStyle">
           <p class="subheading font-weight-medium font-italic text-xs-center accent--text">{{message}}</p>
@@ -38,7 +38,7 @@
         </v-layout>
       </v-slide-y-transition>
       <v-scale-transition>
-        <light-card v-if="lightLoaded" :light="light" :addLED="addLED" :addLEDParams="addLEDParams" :onClose="closeLight">
+        <light-card class="light-card" v-if="lightLoaded" :light="light" :addLED="addLED" :addLEDParams="addLEDParams" :onClose="closeLight">
         </light-card>
       </v-scale-transition>
     </v-flex>
@@ -207,4 +207,21 @@
 </script>
 
 <style scoped>
+  .layout.column > .flex {
+    flex: 0 1 auto;
+  }
+  .layout.column > .flex.light {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .light > .light-card {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow-y: scroll;
+  }
 </style>

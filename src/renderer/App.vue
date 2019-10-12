@@ -159,8 +159,17 @@
 <style>
   @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons');
   /* Global CSS */
+  html {
+    overflow: hidden;
+  }
   .text-wrap-none {
     white-space: nowrap;
     overflow: visible;
+  }
+</style>
+<style scoped>
+  .v-navigation-drawer > .container,
+  .v-navigation-drawer .layout.column {
+    height: 100%;
   }
 </style>
