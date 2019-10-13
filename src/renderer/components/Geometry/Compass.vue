@@ -1,27 +1,19 @@
 <template>
   <div class="compass-wrapper">
-    <div class="compass" @click="mouseClicked" @mousemove="mouseMoved">
-      <div ref="needle" class="needle">
-        <div ref="point" class="point"></div>
+    <div class="compass-field">
+      <div class="compass" @click="mouseClicked" @mousemove="mouseMoved">
+        <div ref="needle" class="needle">
+          <div ref="point" class="point"></div>
+        </div>
+        <div ref="anchor" class="anchor"></div>
       </div>
-      <div ref="anchor" class="anchor"></div>
+      <v-switch class="control-active" v-if="controlActive" v-model="active" @change="setActive(active)" color="secondary"></v-switch>
     </div>
-    <div v-if="hasControls" class="controls">
-      <v-checkbox v-if="controlActive" label="Activate Compass" v-model="active" @change="setActive(active)"></v-checkbox>
-      <v-text-field v-if="controlAngle" label="Angle" v-model="angle" @input="setAngle(angle)">
+    <div v-if="controlsVector" class="controls controls-vector">
+      <v-text-field v-if="controlDistance" v-model="distance" @input="setDistance(distance)" label="Distance" prepend-icon="fas fa-ruler-horizontal fa-lg"></v-text-field>
+      <v-text-field v-if="controlAngle" v-model="angle" @input="setAngle(angle)" label="Angle" prepend-icon="fas fa-drafting-compass fa-lg">
         <template v-slot:append>&deg;</template>
       </v-text-field>
-      <v-text-field v-if="controlDistance" label="Distance" v-model="distance" @input="setDistance(distance)"></v-text-field>
-      <!-- v-input label="Distance" -->
-        <!-- v-text-field v-if="controlAngle" label="Distance" v-model="distance" @input="setDistance(distance)"></v-text-field-->
-        <!-- v-input-number v-if="controlAngle" label="Distance" v-model="distance" @input="setDistance(distance)"></v-input-number-->
-        <!-- input v-if="controlDistance" type="number" v-model="distance" @input="" class="control-distance" />
-      </v-input-->
-
-      <!--input  type="checkbox" v-model="active" @change="setActive(active)" class="control-active" /-->
-      <!--input v-if="controlDistance" type="number" v-model="distance" @input="" class="control-distance" /-->
-      <!--input v-if="controlAngle" type="number" v-model="angle" @input="setAngle(angle)" class="control-angle" /-->
-      <!--span v-if="controlAngle">&deg;</span-->
     </div>
   </div>
 </template>
@@ -58,8 +50,8 @@
       controlDistance () {
         return (this.manualControls === true || (typeof this.manualControls === 'object' && this.manualControls['distance'] === true));
       },
-      hasControls () {
-        return (this.controlActive || this.controlAngle || this.controlDistance);
+      controlsVector () {
+        return (this.controlAngle || this.controlDistance);
       },
       roundingAngle () {
         return (typeof this.rounding === 'object' && this.rounding.hasOwnProperty('angle'))
@@ -173,11 +165,21 @@
 </script>
 
 <style scoped>
+.compass-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.compass-field {
+  position: relative;
+  padding: 0rem 3rem 1rem;
+}
 .compass {
   display: block;
   position: relative;
-  width: 75px;
-  height: 75px;
+  width: 150px;
+  height: 150px;
   border: 1px solid var(--theme-secondary);
   border-radius: 50%;
 }
@@ -214,5 +216,20 @@
   border-left: 15px solid var(--theme-secondary);
   width: 0px;
   height: 0px;
+}
+.control-active {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+}
+.controls.controls-vector {
+  display: flex;
+  justify-content: center;
+}
+.controls-vector > .v-text-field {
+  flex: 0 1 8rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
 }
 </style>
