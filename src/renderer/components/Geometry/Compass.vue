@@ -8,6 +8,7 @@
         <div ref="anchor" class="anchor"></div>
       </div>
       <v-switch class="control-active" v-if="controlActive" v-model="active" @change="setActive(active)" color="secondary"></v-switch>
+      <slot name="compass-controls"></slot>
     </div>
     <div v-if="controlsVector" class="controls controls-vector">
       <v-text-field v-if="controlDistance" v-model="distance" @input="setDistance(distance)" label="Distance" prepend-icon="fas fa-ruler-horizontal fa-lg"></v-text-field>
@@ -173,7 +174,24 @@
 }
 .compass-field {
   position: relative;
-  padding: 0rem 3rem 1rem;
+  padding: 0rem 9rem 1rem;
+}
+.compass-field .v-input {
+  margin: 0;
+}
+.compass-field .control-active {
+  position: absolute;
+  top: 0;
+  left: 69%;
+}
+.controls.controls-vector {
+  display: flex;
+  justify-content: center;
+}
+.controls-vector > .v-text-field {
+  flex: 0 1 8rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
 }
 .compass {
   display: block;
@@ -216,20 +234,5 @@
   border-left: 15px solid var(--theme-secondary);
   width: 0px;
   height: 0px;
-}
-.control-active {
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin: 0;
-}
-.controls.controls-vector {
-  display: flex;
-  justify-content: center;
-}
-.controls-vector > .v-text-field {
-  flex: 0 1 8rem;
-  margin-left: 1rem;
-  margin-right: 1rem;
 }
 </style>

@@ -99,12 +99,15 @@
       </v-flex>
     </v-layout>
     <v-layout v-if="addLED" row wrap justify-center class="add-led mt-1">
-      <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false"></compass>
-      <v-radio-group v-model="angleMode">
-        <v-radio label="Relative" value="relative"></v-radio>
-        <v-radio label="Absolute" value="absolute"></v-radio>
-      </v-radio-group>
-      <v-checkbox label="Add to start" v-model="addToStart"></v-checkbox>
+      <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false">
+        <template v-slot:compass-controls>
+          <v-checkbox label="Add to start" v-model="addToStart" class="add-position"></v-checkbox>
+          <v-radio-group v-model="angleMode" class="angle-mode">
+            <v-radio label="Relative" value="relative"></v-radio>
+            <v-radio label="Absolute" value="absolute"></v-radio>
+          </v-radio-group>
+        </template>
+      </compass>
       <v-btn
         round
         color="secondary"
@@ -280,7 +283,6 @@
   .led-list {
     align-content: flex-start;
   }
-
   .extra-leds {
     position: absolute;
     z-index: 1;
@@ -290,6 +292,20 @@
     overflow-x: auto;
     border-radius: 4px;
     background-color: #616161;
+  }
+
+  .layout.add-led {
+    position: relative;
+  }
+  .layout.add-led .angle-mode {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+  }
+  .layout.add-led .add-position {
+    position: absolute;
+    left: 0;
+    bottom: 0;
   }
 
   >>> .compass > .needle > .point {
