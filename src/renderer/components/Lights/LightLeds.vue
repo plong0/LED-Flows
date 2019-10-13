@@ -101,7 +101,14 @@
     <v-layout v-if="addLED" row wrap justify-center class="add-led mt-1">
       <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false">
         <template v-slot:compass-controls>
-          <v-checkbox label="Add to start" v-model="addToStart" class="add-position"></v-checkbox>
+          <SegmentSelect v-model="addToStart" width="64px" height="64px" class="add-position">
+            <template v-slot:tooltip-left>
+              Add to start
+            </template>
+            <template v-slot:tooltip-right>
+              Add to end
+            </template>
+          </SegmentSelect>
           <v-radio-group v-model="angleMode" class="angle-mode">
             <v-radio label="Relative" value="relative"></v-radio>
             <v-radio label="Absolute" value="absolute"></v-radio>
@@ -123,9 +130,10 @@
 <script>
   import LedDetails from './LedDetails';
   import Compass from '@/components/Geometry/Compass';
+  import SegmentSelect from '@/components/Geometry/SegmentSelect';
 
   export default {
-    components: { LedDetails, Compass },
+    components: { LedDetails, Compass, SegmentSelect },
     props: {
       addLED: {
         type: Function
