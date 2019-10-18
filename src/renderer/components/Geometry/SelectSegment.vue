@@ -1,14 +1,14 @@
 <template>
-  <div :style="{ width, height }" :class="{ 'segment-select': true, 'active-left': activeLeft, 'active-right': activeRight }">
-    <v-tooltip left :disabled="activeLeft" open-delay="500" close-delay="250">
+  <div :style="{ width, height }" :class="`select-segment active-${valueString}`">
+    <v-tooltip top open-delay="500" close-delay="250">
       <template v-slot:activator="{ on }">
-        <div v-on="on" class="target target-left" @click="setValue(Number.isInteger(value) ? 0 : true)"></div>
+        <a v-on="on" @click="setValue(mapValue('left'))" :class="{'target': true, 'target-left': true, 'target-active': isValue('left')}"></a>
       </template>
       <slot name="tooltip-left"></slot>
     </v-tooltip>
-    <v-tooltip right :disabled="activeRight" open-delay="500" close-delay="250">
+    <v-tooltip top open-delay="500" close-delay="250">
       <template v-slot:activator="{ on }">
-        <div v-on="on" class="target target-right" @click="setValue(Number.isInteger(value) ? 1 : false)"></div>
+        <a v-on="on" @click="setValue(mapValue('right'))" :class="{'target': true, 'target-right': true, 'target-active': isValue('right')}"></a>
       </template>
       <slot name="tooltip-right"></slot>
     </v-tooltip>
@@ -44,9 +44,28 @@
       },
       activeRight () {
         return (this.value === 1 || this.value === false);
+      },
+      valueString () {
+        if (this.activeLeft) {
+          return 'left';
+        }
+        if (this.activeRight) {
+          return 'right';
+        }
+        return '';
       }
     },
     methods: {
+      isValue (value) {
+        return (this.value === value || this.valueString === value);
+      },
+      mapValue (value) {
+        if (value === 'left') {
+          return (Number.isInteger(value) ? 0 : true);
+        } else if (value === 'right') {
+          return (Number.isInteger(value) ? 1 : false);
+        }
+      },
       setValue (value) {
         this.$emit('input', value);
       }
@@ -55,7 +74,7 @@
 </script>
 
 <style scoped>
-  .segment-select {
+  .select-segment {
     position: relative;
   }
   .icon {
@@ -70,35 +89,29 @@
     left: 0;
   }
   .target {
-    cursor: pointer;
+    display: block;
     position: absolute;
-    z-index: 5;
     top: 25%;
     bottom: 25%;
     width: 50%;
+    z-index: 5;
   }
   .target-left {
     left: 0;
   }
-  .segment-select:not(.active-left) .target-left:hover ~ .icon-segment-active-left {
-    opacity: 0.5;
-  }
-  .target-left:hover ~ .icon-segment-active-right {
-    opacity: 0;
-  }
   .target-right {
     right: 0;
   }
-  .segment-select:not(.active-right) .target-right:hover ~ .icon-segment-active-right {
+  .target-left:not(.target-active):hover ~ .icon-segment-active-left {
     opacity: 0.5;
   }
-  .target-right:hover ~ .icon-segment-active-left {
-    opacity: 0;
+  .target-right:not(.target-active):hover ~ .icon-segment-active-right {
+    opacity: 0.5;
   }
-  .active-left .icon-segment-active-left {
+  .target-left.target-active ~ .icon-segment-active-left {
     opacity: 1;
   }
-  .active-right .icon-segment-active-right {
+  .target-right.target-active ~ .icon-segment-active-right {
     opacity: 1;
-  }
+  }  
 </style>

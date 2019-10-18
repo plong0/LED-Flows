@@ -101,18 +101,15 @@
     <v-layout v-if="addLED" row wrap justify-center class="add-led mt-1">
       <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false">
         <template v-slot:compass-controls>
-          <SegmentSelect v-model="addToStart" width="64px" height="64px" class="add-position">
+          <SelectSegment v-model="addToStart" width="64px" height="64px" class="add-position">
             <template v-slot:tooltip-left>
               Add to start
             </template>
             <template v-slot:tooltip-right>
               Add to end
             </template>
-          </SegmentSelect>
-          <v-radio-group v-model="angleMode" class="angle-mode">
-            <v-radio label="Relative" value="relative"></v-radio>
-            <v-radio label="Absolute" value="absolute"></v-radio>
-          </v-radio-group>
+          </SelectSegment>
+          <SelectAngleMode v-model="angleMode" width="36px" height="36px" class="angle-mode"></SelectAngleMode>
         </template>
       </compass>
       <v-btn
@@ -130,10 +127,11 @@
 <script>
   import LedDetails from './LedDetails';
   import Compass from '@/components/Geometry/Compass';
-  import SegmentSelect from '@/components/Geometry/SegmentSelect';
+  import SelectSegment from '@/components/Geometry/SelectSegment';
+  import SelectAngleMode from '@/components/Geometry/SelectAngleMode';
 
   export default {
-    components: { LedDetails, Compass, SegmentSelect },
+    components: { LedDetails, Compass, SelectSegment, SelectAngleMode },
     props: {
       addLED: {
         type: Function
@@ -314,6 +312,12 @@
     position: absolute;
     left: 0;
     bottom: 0;
+  }
+  .angle-mode .icon {
+    color: var(--theme-secondary);
+  }
+  .angle-mode .accent--text .icon {
+    color: var(--theme-accent);
   }
 
   >>> .compass > .needle > .point {
