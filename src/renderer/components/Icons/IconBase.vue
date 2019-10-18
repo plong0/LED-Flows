@@ -11,7 +11,7 @@
       :id="iconName"
       lang="en"
     >{{ iconName }} icon</title>
-    <g :fill="iconColor">
+    <g :fill="iconColor" :stroke="iconColor">
       <slot />
     </g>
   </svg>
