@@ -55,8 +55,18 @@
         type: Object
       },
       referencePoints: {
-        type: Array
-        // TODO: should validate as array of points
+        type: Array,
+        validator: function (value) {
+          if (!value || !Array.isArray(value)) {
+            return false;
+          }
+          for (let check of value) {
+            if (!Geo.isPoint(check)) {
+              return false;
+            }
+          }
+          return true;
+        }
       }
     },
     computed: {
