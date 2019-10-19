@@ -7,9 +7,10 @@ const Geo = {
     return (typeof p === 'object' && p.hasOwnProperty('x') && p.hasOwnProperty('y') && this.isNumber(p.x) && this.isNumber(p.y));
   },
   addToPoint (p, v) {
+    const angle = this.convertDegToRad(v.angle);
     const p2 = {
-      x: p.x + v.distance * Math.cos(v.angle),
-      y: p.y + v.distance * Math.sin(v.angle)
+      x: p.x + v.distance * Math.cos(angle),
+      y: p.y + v.distance * Math.sin(angle)
     };
     return p2;
   },
@@ -17,7 +18,8 @@ const Geo = {
     if (!this.isPoint(p1) || !this.isPoint(p2)) {
       return undefined;
     }
-    return Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+    const radians = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+    return this.convertRadToDeg(radians);
   },
   calculateDistance (p1, p2) {
     if (!this.isPoint(p1) || !this.isPoint(p2)) {
@@ -27,6 +29,12 @@ const Geo = {
     var dx = p2.x - p1.x;
     var dy = p2.y - p1.y;
     return Math.sqrt(dx * dx + dy * dy);
+  },
+  convertDegToRad (angle) {
+    return (angle * (Math.PI / 180));
+  },
+  convertRadToDeg (radians) {
+    return (radians * (180 / Math.PI));
   },
   round (value, rounding) {
     if (!this.isNumber(value)) {

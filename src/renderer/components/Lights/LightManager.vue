@@ -130,8 +130,6 @@
                 }
               }
             }
-            // convert angle to radians
-            offset.angle *= Math.PI / 180;
             // add offset vector to last point
             LED = Geo.addToPoint(endPoint.position, offset);
           }
