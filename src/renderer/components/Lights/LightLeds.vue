@@ -99,7 +99,7 @@
       </v-flex>
     </v-layout>
     <v-layout v-if="addLED" row wrap justify-center class="add-led mt-1">
-      <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false">
+      <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false" :reference-points="compassReferencePoints">
         <template v-slot:compass-controls>
           <SelectSegment v-model="addToStart" width="64px" height="64px" class="add-position">
             <template v-slot:tooltip-left>
@@ -205,6 +205,23 @@
       },
       pageOffset () {
         return (this.page * this.pageLimit);
+      },
+      compassReferencePoints () {
+        if (!this.light) {
+          return;
+        }
+        const points = [];
+        const pointCount = 6;
+        const direction = (this.addToStart ? 1 : -1);
+        const start = (this.addToStart ? 0 : -1);
+        for (let i = 0; i < pointCount; i++) {
+          const point = this.$store.getters['Lights/point'](this.light.id, (start + (i * direction)));
+          if (!point || !point.position) {
+            break;
+          }
+          points.push(point.position);
+        }
+        return points;
       }
     },
     watch: {
@@ -306,12 +323,12 @@
   .layout.add-led .angle-mode {
     position: absolute;
     right: 0;
-    bottom: 0;
+    bottom: 40px;
   }
   .layout.add-led .add-position {
     position: absolute;
-    left: 0;
-    bottom: 0;
+    right: 0;
+    bottom: -24px;
   }
   .angle-mode .icon {
     color: var(--theme-secondary);
