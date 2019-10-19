@@ -212,22 +212,24 @@
         if (distance < 0) {
           distance = 0;
         }
+        // set the real distance
         this.distance = distance;
-        // TODO: incorporate scaling here (distance will be the real co-ords)
+        // calculate a scaled distance for rendering
+        const renderDistance = this.distance * this.referenceScale.x;
         if (this.shrinkPoint) {
-          if (distance < this.defaultPointWidth) {
+          if (renderDistance < this.defaultPointWidth) {
             this.$refs.needle.style.width = '0px';
             // shrink the point if needed
-            this.$refs.point.style.borderLeftWidth = `${this.distance}px`;
-            this.$refs.point.style.right = `${-this.distance}px`;
+            this.$refs.point.style.borderLeftWidth = `${renderDistance}px`;
+            this.$refs.point.style.right = `${-renderDistance}px`;
           } else {
-            this.$refs.needle.style.width = `${this.distance - this.defaultPointWidth}px`;
+            this.$refs.needle.style.width = `${renderDistance - this.defaultPointWidth}px`;
             // unshrink the point if distance is great enough
             this.$refs.point.style.borderLeftWidth = `${this.defaultPointWidth}px`;
             this.$refs.point.style.right = `${-this.defaultPointWidth}px`;
           }
         } else {
-          this.$refs.needle.style.width = `${this.distance}px`;
+          this.$refs.needle.style.width = `${renderDistance}px`;
         }
         this.fireEvent('compassDistance', { distance });
       },
@@ -245,14 +247,15 @@
         if (!this.active) {
           return;
         }
-        var anchor = this.getAnchorPoint();
-        var point = {
-          x: event.clientX,
-          y: event.clientY
+        const anchor = this.getAnchorPoint();
+        const origin = { x: 0, y: 0 };
+        const scale = this.referenceScale;
+        const point = {
+          x: (event.clientX - anchor.x) / scale.x,
+          y: (event.clientY - anchor.y) / scale.y
         };
-        // TODO: incorporate scaling here and also when rendering the point
-        this.setDistance(Geo.calculateDistance(anchor, point));
-        this.setAngle(Geo.calculateAngle(anchor, point));
+        this.setDistance(Geo.calculateDistance(point, origin));
+        this.setAngle(Geo.calculateAngle(origin, point));
         this.fireEvent('compassChanged', {
           active: this.active,
           angle: this.angle,
