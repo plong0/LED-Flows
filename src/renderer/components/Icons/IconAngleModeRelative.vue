@@ -1,5 +1,5 @@
 <template>
-  <IconBase icon-name="angle-relative" class="icon-angle icon-angle-relative">
+  <IconBase icon-name="angle-mode-relative" class="icon-angle-mode icon-angle-mode-relative">
     <path transform="rotate(45)" d="m7.4901-5.2332a7.412 7.412 0 0 1 5.2411-2.1709v7.412z" fill="none"/>
     <path d="m9 9 9.0054-9.0054" fill="none"/>
     <path d="m10.58 9.0034c0-0.69148-0.44169-1.28-1.0586-1.498v-4.416c0.61682-0.2181 1.0586-0.80649 1.0586-1.498 0-0.87719-0.71066-1.5879-1.5879-1.5879-0.87721 0-1.5879 0.71073-1.5879 1.5879 0 0.69154 0.44169 1.28 1.0586 1.498v4.416c-0.61688 0.21804-1.0586 0.80659-1.0586 1.498z" fill-rule="evenodd" stroke-width="0"/>

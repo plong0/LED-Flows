@@ -3,8 +3,8 @@
     <v-tooltip left open-delay="500" close-delay="250">
       <template v-slot:activator="{ on }">
         <a v-on="on" @click="setValue('relative')" :class="{ 'target': true, 'target-relative': true, 'target-active': isValue('relative') }" :style="{ width, height }">
-          <IconAngleRelative :width="width" :height="height"></IconAngleRelative>
-          <IconAngleRelative class="overlay" :width="width" :height="height"></IconAngleRelative>
+          <IconAngleModeRelative :width="width" :height="height"></IconAngleModeRelative>
+          <IconAngleModeRelative :width="width" :height="height" class="overlay"></IconAngleModeRelative>
         </a>
       </template>
       <slot name="tooltip-relative">Relative Angle</slot>
@@ -12,8 +12,8 @@
     <v-tooltip left open-delay="500" close-delay="250">
       <template v-slot:activator="{ on }">
         <a v-on="on" @click="setValue('absolute')" :class="{ 'target': true, 'target-absolute': true, 'target-active': isValue('absolute') }" :style="{ width, height }">
-          <IconAngleAbsolute :width="width" :height="height"></IconAngleAbsolute>
-          <IconAngleAbsolute class="overlay" :width="width" :height="height"></IconAngleAbsolute>
+          <IconAngleModeAbsolute :width="width" :height="height"></IconAngleModeAbsolute>
+          <IconAngleModeAbsolute :width="width" :height="height" class="overlay"></IconAngleModeAbsolute>
         </a>
       </template>
       <slot name="tooltip-absolute">Absolute Angle</slot>
@@ -22,10 +22,10 @@
 </template>
 
 <script>
-import IconAngleAbsolute from '@/components/Icons/IconAngleAbsolute';
-import IconAngleRelative from '@/components/Icons/IconAngleRelative';
+import IconAngleModeAbsolute from '@/components/Icons/IconAngleModeAbsolute';
+import IconAngleModeRelative from '@/components/Icons/IconAngleModeRelative';
 export default {
-  components: { IconAngleAbsolute, IconAngleRelative },
+  components: { IconAngleModeAbsolute, IconAngleModeRelative },
   props: {
     value: {
       type: String,
