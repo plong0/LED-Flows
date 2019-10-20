@@ -8,13 +8,16 @@
         <div ref="anchor" class="anchor"></div>
         <div v-if="hasReference" class="reference">
           <div v-if="hasReferenceLines" class="reference-lines">
-            <span v-for="line in renderReferenceLines" class="reference-line" :style="{ width: `${line.length}px`, transform: `translateY(-50%) rotateZ(${line.angle}deg)` }"></span>
+            <span v-for="line in renderReferenceLines" class="reference-line" :style="line.style"></span>
           </div>
           <div v-if="hasReferenceRings" class="reference-rings">
-            <span v-for="ring in renderReferenceRings" class="reference-ring" :style="{ 'width': ring.width+'px', 'height': ring.height+'px' }"></span>
+            <span v-for="ring in renderReferenceRings" class="reference-ring" :style="ring.style"></span>
+          </div>
+          <div v-if="hasReferencePointConnectors" class="reference-point-connectors">
+            <span v-for="connector in renderReferencePointConnectors" class="reference-point-connector" :style="connector.style"></span>
           </div>
           <div v-if="hasReferencePoints" class="reference-points">
-            <span v-for="point in renderReferencePoints" class="reference-point" :style="{ 'top': point.y+'px', 'left': point.x+'px' }"></span>
+            <span v-for="point in renderReferencePoints" class="reference-point" :style="point.style"></span>
           </div>
         </div>
       </div>
@@ -117,6 +120,9 @@
       hasReferenceRings () {
         return (this.hasReferencePoints && ((this.referenceRings === true && this.referencePoints.length > 1) || (!isNaN(Number(this.referenceRings)) && this.referencePoints.length > this.referenceRings)));
       },
+      hasReferencePointConnectors () {
+        return (this.hasReferencePoints && this.referencePoints.length > 1);
+      },
       hasReferencePoints () {
         return (this.referencePoints && this.referencePoints.length);
       },
@@ -181,9 +187,21 @@
         const length = this.compassSize / 2.0;
         renderLines.push({
           length: length,
-          angle: angle
+          angle: angle,
+          style: {
+            width: `${length}px`,
+            transform: `translateY(-50%) rotateZ(${angle}deg)`
+          }
         });
         return renderLines;
+      },
+      renderReferencePointConnectors () {
+        const renderPointConnectors = [];
+        if (this.hasReferencePoints) {
+          if (this.referencePoints.length > 1) {
+          }
+        }
+        return renderPointConnectors;
       },
       renderReferencePoints () {
         const renderPoints = [];
@@ -193,15 +211,25 @@
             const scale = this.referenceScale;
             let rp0 = {
               x: cr,
-              y: cr
+              y: cr,
+              style: {
+                left: `${cr}px`,
+                top: `${cr}px`
+              }
             };
             renderPoints.push(rp0);
             for (let i = 0; i < this.referencePoints.length - 1; i++) {
               let p0 = this.referencePoints[i];
               let p1 = this.referencePoints[i + 1];
+              const px = (rp0.x + (p1.x - p0.x) * scale.x);
+              const py = (rp0.y + (p1.y - p0.y) * scale.y);
               let rp1 = {
-                x: rp0.x + (p1.x - p0.x) * scale.x,
-                y: rp0.y + (p1.y - p0.y) * scale.y
+                x: px,
+                y: py,
+                style: {
+                  left: `${px}px`,
+                  top: `${py}px`
+                }
               };
               renderPoints.push(rp1);
               rp0 = rp1;
@@ -217,7 +245,11 @@
             const cr = this.compassSize / 2.0;
             renderRings.push({
               width: cr,
-              height: cr
+              height: cr,
+              style: {
+                width: `${cr}px`,
+                height: `${cr}px`
+              }
             });
           }
         }
@@ -396,6 +428,7 @@
 }
 .reference,
 .reference-points,
+.reference-point-connectors,
 .reference-rings,
 .reference-lines {
   display: block;
@@ -415,8 +448,11 @@
 .reference-rings {
   z-index: 7;
 }
-.reference-points {
+.reference-point-connectors {
   z-index: 8;
+}
+.reference-points {
+  z-index: 9;
 }
 .anchor,
 .needle,
@@ -441,7 +477,8 @@
   transform: translate(-50%, -50%);
 }
 .needle,
-.reference-line {
+.reference-line,
+.reference-point-connector {
   border-top: 1px solid var(--theme-secondary);
   transform-origin: 0 50%;
   transform: translateY(-50%) rotateZ(0);
@@ -457,6 +494,7 @@
 }
 .reference-line,
 .reference-ring,
+.reference-point-connector,
 .reference-point {
   display: block;
   position: absolute;
