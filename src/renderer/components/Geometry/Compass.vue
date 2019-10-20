@@ -351,6 +351,7 @@
   position: relative;
   padding: 0rem 5rem;
   margin-bottom: 1.5rem;
+  overflow: hidden;
 }
 .compass-field .v-input {
   margin: 0;
