@@ -220,6 +220,6 @@
     right: 0;
     bottom: 0;
     left: 0;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
 </style>
