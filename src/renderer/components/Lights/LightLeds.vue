@@ -99,7 +99,7 @@
       </v-flex>
     </v-layout>
     <v-layout v-if="addLED" row wrap justify-center class="add-led mt-1">
-      <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false" :reference-points="compassReferencePoints">
+      <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false" :reference-points="compassReferencePoints" :relative-reference-points="(angleMode === 'relative')">
         <template v-slot:compass-controls>
           <SelectSegment v-model="addToStart" width="64px" height="64px" class="add-position">
             <template v-slot:tooltip-left>

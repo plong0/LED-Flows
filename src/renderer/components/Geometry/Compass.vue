@@ -2,14 +2,18 @@
   <div class="compass-wrapper">
     <div class="compass-field">
       <div ref="compass" class="compass" @click="mouseClicked" @mousemove="mouseMoved">
-        <div ref="needle" class="needle">
-          <div ref="point" class="point"></div>
+        <div ref="needle" class="needle" :style="renderCompass.needle">
+          <div ref="point" class="point" :style="renderCompass.point"></div>
         </div>
         <div ref="anchor" class="anchor"></div>
         <div v-if="hasReference" class="reference">
-          <Coordinates :x="referenceScale.x" :y="referenceScale.y" :precision="2" class="reference-scale"></Coordinates>
+          <div v-if="hasReferenceLines" class="reference-lines">
+            <span v-for="line in renderReferenceLines" class="reference-line" :style="{ width: `${line.length}px`, transform: `translateY(-50%) rotateZ(${line.angle}deg)` }"></span>
+          </div>
+          <div v-if="hasReferenceRings" class="reference-rings">
+            <span v-for="ring in renderReferenceRings" class="reference-ring" :style="{ 'width': ring.width+'px', 'height': ring.height+'px' }"></span>
+          </div>
           <div v-if="hasReferencePoints" class="reference-points">
-            <span v-for="ring in renderReferenceRings" class="reference-ring" :style="{ 'top': '50%', 'left': '50%', 'width': ring.width+'px', 'height': ring.height+'px' }"></span>
             <span v-for="point in renderReferencePoints" class="reference-point" :style="{ 'top': point.y+'px', 'left': point.x+'px' }"></span>
           </div>
         </div>
@@ -20,7 +24,10 @@
         </template>
         Activate Compass
       </v-tooltip>
-      <slot name="compass-controls"></slot>
+      <div class="compass-info">
+        <Coordinates :x="referenceScale.x" :y="referenceScale.y" :precision="2" class="reference-scale"></Coordinates>
+      </div>
+      <slot class="compass-controls" name="compass-controls"></slot>
     </div>
     <div v-if="controlsVector" class="controls controls-vector">
       <v-text-field v-if="controlDistance" v-model="distance" @input="setDistance(distance)" label="Distance" prepend-icon="fas fa-ruler-horizontal fa-lg"></v-text-field>
@@ -54,6 +61,14 @@
         // provided by v-model
         type: Object
       },
+      referenceLines: {
+        type: [Boolean, Array],
+        default: true
+      },
+      referenceRings: {
+        type: [Boolean, Number],
+        default: true
+      },
       referencePoints: {
         type: Array,
         validator: function (value) {
@@ -67,6 +82,10 @@
           }
           return true;
         }
+      },
+      relativeReferencePoints: {
+        type: Boolean,
+        default: false
       }
     },
     computed: {
@@ -87,6 +106,12 @@
       },
       hasReference () {
         return (this.hasReferencePoints);
+      },
+      hasReferenceLines () {
+        return (this.referenceLines === true || (Array.isArray(this.referenceLines) && this.referenceLines.length));
+      },
+      hasReferenceRings () {
+        return (this.hasReferencePoints && ((this.referenceRings === true && this.referencePoints.length > 1) || (!isNaN(Number(this.referenceRings)) && this.referencePoints.length > this.referenceRings)));
       },
       hasReferencePoints () {
         return (this.referencePoints && this.referencePoints.length);
@@ -109,6 +134,52 @@
           x: 1.0,
           y: 1.0
         };
+      },
+      relativeAngle () {
+        if (this.relativeReferencePoints && this.hasReferencePoints && this.referencePoints.length > 1) {
+          const p0 = this.referencePoints[0];
+          const p1 = this.referencePoints[1];
+          const angle = Geo.calculateAngle(p1, p0);
+          return angle;
+        }
+        return 0;
+      },
+      renderCompass () {
+        const style = {
+          needle: {},
+          point: {}
+        };
+        const renderAngle = Number(this.angle) + Number(this.relativeAngle);
+        // TODO: it would be better to scale the vector by [scale.x, scale.y]
+        const renderDistance = Number(this.distance) * Number(this.referenceScale.x);
+        style.needle.transform = `translateY(-50%) rotateZ(${renderAngle}deg)`;
+        if (this.shrinkPoint) {
+          if (renderDistance < this.defaultPointWidth) {
+            style.needle.width = '0px';
+            style.needle.width = '0px';
+            // shrink the point if needed
+            style.point.borderLeftWidth = `${renderDistance}px`;
+            style.point.right = `${-renderDistance}px`;
+          } else {
+            style.needle.width = `${renderDistance - this.defaultPointWidth}px`;
+            // unshrink the point if distance is great enough
+            style.point.borderLeftWidth = `${this.defaultPointWidth}px`;
+            style.point.right = `${-this.defaultPointWidth}px`;
+          }
+        } else {
+          style.needle.width = `${renderDistance}px`;
+        }
+        return style;
+      },
+      renderReferenceLines () {
+        const renderLines = [];
+        const angle = this.relativeAngle;
+        const length = this.compassSize / 2.0;
+        renderLines.push({
+          length: length,
+          angle: angle
+        });
+        return renderLines;
       },
       renderReferencePoints () {
         const renderPoints = [];
@@ -197,6 +268,9 @@
           distance: this.distance
         });
       },
+      roundNumber (value, rounding) {
+        return Geo.round(value, rounding);
+      },
       setActive (active) {
         this.active = active;
         this.fireEvent('compassActive', { active });
@@ -204,7 +278,6 @@
       setAngle (angle) {
         angle = Geo.round(angle, this.roundingAngle);
         this.angle = angle;
-        this.$refs.needle.style.transform = `translateY(-50%) rotateZ(${this.angle}deg)`;
         this.fireEvent('compassAngle', { angle });
       },
       setDistance (distance) {
@@ -212,33 +285,20 @@
         if (distance < 0) {
           distance = 0;
         }
-        // set the real distance
         this.distance = distance;
-        // calculate a scaled distance for rendering
-        const renderDistance = this.distance * this.referenceScale.x;
-        if (this.shrinkPoint) {
-          if (renderDistance < this.defaultPointWidth) {
-            this.$refs.needle.style.width = '0px';
-            // shrink the point if needed
-            this.$refs.point.style.borderLeftWidth = `${renderDistance}px`;
-            this.$refs.point.style.right = `${-renderDistance}px`;
-          } else {
-            this.$refs.needle.style.width = `${renderDistance - this.defaultPointWidth}px`;
-            // unshrink the point if distance is great enough
-            this.$refs.point.style.borderLeftWidth = `${this.defaultPointWidth}px`;
-            this.$refs.point.style.right = `${-this.defaultPointWidth}px`;
-          }
-        } else {
-          this.$refs.needle.style.width = `${renderDistance}px`;
-        }
         this.fireEvent('compassDistance', { distance });
       },
       getAnchorPoint () {
-        var bounds = this.$refs.anchor.getBoundingClientRect();
-        return {
-          x: bounds.left + bounds.width / 2.0,
-          y: bounds.top + bounds.height / 2.0
+        const anchor = {
+          x: 0,
+          y: 0
         };
+        if (this.isMounted) {
+          var bounds = this.$refs.anchor.getBoundingClientRect();
+          anchor.x = (bounds.left + bounds.width / 2.0);
+          anchor.y = (bounds.top + bounds.height / 2.0);
+        }
+        return anchor;
       },
       mouseClicked (event) {
         this.setActive(!this.active);
@@ -255,7 +315,7 @@
           y: (event.clientY - anchor.y) / scale.y
         };
         this.setDistance(Geo.calculateDistance(point, origin));
-        this.setAngle(Geo.calculateAngle(origin, point));
+        this.setAngle(Geo.calculateAngle(origin, point) - this.relativeAngle);
         this.fireEvent('compassChanged', {
           active: this.active,
           angle: this.angle,
@@ -286,6 +346,14 @@
   top: 0;
   left: 75%;
 }
+.compass-info {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 0.5em 1.0em;
+  opacity: 0.85;
+  font-size: 0.9em;
+}
 .controls.controls-vector {
   display: flex;
   justify-content: center;
@@ -298,13 +366,16 @@
 .compass {
   display: block;
   position: relative;
+  z-index: 10;
   width: 150px;
   height: 150px;
   border: 1px solid var(--theme-secondary);
   border-radius: 50%;
 }
 .reference,
-.reference-points {
+.reference-points,
+.reference-rings,
+.reference-lines {
   display: block;
   position: absolute;
   top: 0;
@@ -316,6 +387,15 @@
   opacity: 0.5;
   z-index: 5;
 }
+.reference-lines {
+  z-index: 6;
+}
+.reference-rings {
+  z-index: 7;
+}
+.reference-points {
+  z-index: 8;
+}
 .anchor,
 .needle,
 .point {
@@ -325,7 +405,8 @@
   z-index: 10;
 }
 .anchor,
-.needle {
+.needle,
+.reference-line {
   left: 50%; /* anchor x */
   top: 50%; /* anchor y */
 }
@@ -337,7 +418,8 @@
   border-radius: 50%;
   transform: translate(-50%, -50%);
 }
-.needle {
+.needle,
+.reference-line {
   border-top: 1px solid var(--theme-secondary);
   transform-origin: 0 50%;
   transform: translateY(-50%) rotateZ(0);
@@ -351,18 +433,26 @@
   width: 0px;
   height: 0px;
 }
+.reference-line,
 .reference-ring,
 .reference-point {
   display: block;
   position: absolute;
+}
+.reference-ring,
+.reference-point {
   transform: translate(-50%, -50%);
   border-radius: 50%;
+}
+.reference-line {
 }
 .reference-ring {
   /*
   background-color: var(--theme-secondary);
   opacity: 0.25;
   */
+  top: 50%;
+  left: 50%;
   border: 1px solid var(--theme-secondary);
 }
 .reference-point {
