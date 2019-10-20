@@ -1,6 +1,6 @@
 <template>
   <div :class="`select-angle-direction active-${value}`">
-    <v-tooltip top open-delay="500" close-delay="250">
+    <v-tooltip top open-delay="750" close-delay="250">
       <template v-slot:activator="{ on }">
         <a v-on="on" @click="setValue(-1)" :class="{ 'target': true, 'target-ccw': true, 'target-active': isValue(-1) }" :style="{ width, height, fontSize: height }">
           <i style="{ width, height }" class="icon fas fa-undo"></i>
@@ -9,7 +9,7 @@
       </template>
       <slot name="tooltip-ccw">Counter clockwise</slot>
     </v-tooltip>
-    <v-tooltip top open-delay="500" close-delay="250">
+    <v-tooltip top open-delay="750" close-delay="250">
       <template v-slot:activator="{ on }">
         <a v-on="on" @click="setValue(1)" :class="{ 'target': true, 'target-cw': true, 'target-active': isValue(1) }" :style="{ width, height, fontSize: height }">
           <i style="{ width, height }" class="icon fas fa-undo fa-flip-horizontal"></i>

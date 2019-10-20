@@ -1,6 +1,6 @@
 <template>
   <div :class="`select-angle-mode active-${value}`">
-    <v-tooltip left open-delay="500" close-delay="250">
+    <v-tooltip left open-delay="750" close-delay="250">
       <template v-slot:activator="{ on }">
         <a v-on="on" @click="setValue('relative')" :class="{ 'target': true, 'target-relative': true, 'target-active': isValue('relative') }" :style="{ width, height }">
           <IconAngleModeRelative :width="width" :height="height"></IconAngleModeRelative>
@@ -9,7 +9,7 @@
       </template>
       <slot name="tooltip-relative">Relative Angle</slot>
     </v-tooltip>
-    <v-tooltip left open-delay="500" close-delay="250">
+    <v-tooltip left open-delay="750" close-delay="250">
       <template v-slot:activator="{ on }">
         <a v-on="on" @click="setValue('absolute')" :class="{ 'target': true, 'target-absolute': true, 'target-active': isValue('absolute') }" :style="{ width, height }">
           <IconAngleModeAbsolute :width="width" :height="height"></IconAngleModeAbsolute>

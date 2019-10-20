@@ -1,12 +1,12 @@
 <template>
   <div :style="{ width, height }" :class="`select-segment active-${valueString}`">
-    <v-tooltip top open-delay="500" close-delay="250">
+    <v-tooltip top open-delay="750" close-delay="250">
       <template v-slot:activator="{ on }">
         <a v-on="on" @click="setValue(mapValue('left'))" :class="{'target': true, 'target-left': true, 'target-active': isValue('left')}"></a>
       </template>
       <slot name="tooltip-left"></slot>
     </v-tooltip>
-    <v-tooltip top open-delay="500" close-delay="250">
+    <v-tooltip top open-delay="750" close-delay="250">
       <template v-slot:activator="{ on }">
         <a v-on="on" @click="setValue(mapValue('right'))" :class="{'target': true, 'target-right': true, 'target-active': isValue('right')}"></a>
       </template>

@@ -18,7 +18,7 @@
           </div>
         </div>
       </div>
-      <v-tooltip left open-delay="500" close-delay="250">
+      <v-tooltip left open-delay="750" close-delay="250">
         <template v-slot:activator="{ on }">
           <v-switch v-on="on" v-if="controlActive" v-model="active" @change="setActive(active)" class="control-active" color="secondary"></v-switch>
         </template>
