@@ -30,10 +30,13 @@
       <slot class="compass-controls" name="compass-controls"></slot>
     </div>
     <div v-if="controlsVector" class="controls controls-vector">
-      <v-text-field v-if="controlDistance" v-model="distance" @input="setDistance(distance)" label="Distance" prepend-icon="fas fa-ruler-horizontal fa-lg"></v-text-field>
-      <v-text-field v-if="controlAngle" v-model="angle" @input="setAngle(angle)" label="Angle" prepend-icon="fas fa-drafting-compass fa-lg">
-        <template v-slot:append>&deg;</template>
-      </v-text-field>
+      <v-text-field v-if="controlDistance" class="control-distance" v-model="distance" @input="setDistance(distance)" label="Distance" prepend-icon="fas fa-ruler-horizontal fa-lg"></v-text-field>
+      <div v-if="controlAngle" class="control-angle">
+        <SelectAngleDirection v-model="angleDirection" @input="setAngleDirection(angleDirection)"></SelectAngleDirection>
+        <v-text-field v-model="angle" @input="setAngle(angle * angleDirection)" label="Angle" prepend-icon="fas fa-drafting-compass fa-lg">
+          <template v-slot:append>&deg;</template>
+        </v-text-field>
+      </div>
     </div>
   </div>
 </template>
@@ -41,9 +44,10 @@
 <script>
   import Geo from '@/utils/Geo';
   import Coordinates from '@/components/Geometry/Coordinates';
+  import SelectAngleDirection from '@/components/Geometry/SelectAngleDirection';
 
   export default {
-    components: { Coordinates },
+    components: { Coordinates, SelectAngleDirection },
     props: {
       manualControls: {
         type: [Boolean, Object],
@@ -149,7 +153,7 @@
           needle: {},
           point: {}
         };
-        const renderAngle = Number(this.angle) + Number(this.relativeAngle);
+        const renderAngle = (Number(this.angle) * Number(this.angleDirection)) + Number(this.relativeAngle);
         // TODO: it would be better to scale the vector by [scale.x, scale.y]
         const renderDistance = Number(this.distance) * Number(this.referenceScale.x);
         style.needle.transform = `translateY(-50%) rotateZ(${renderAngle}deg)`;
@@ -233,6 +237,7 @@
     data: () => ({
       active: false,
       angle: -90,
+      angleDirection: -1,
       distance: 0,
       defaultPointWidth: 0,
       isMounted: false
@@ -264,7 +269,7 @@
       fireEvent (type, detail) {
         this.$emit('input', {
           active: this.active,
-          angle: this.angle,
+          angle: this.angle * this.angleDirection,
           distance: this.distance
         });
       },
@@ -277,8 +282,17 @@
       },
       setAngle (angle) {
         angle = Geo.round(angle, this.roundingAngle);
-        this.angle = angle;
+        if (angle < 0) {
+          this.angleDirection = -1;
+        } else if (angle > 0) {
+          this.angleDirection = 1;
+        }
+        this.angle = Math.abs(angle);
         this.fireEvent('compassAngle', { angle });
+      },
+      setAngleDirection (angleDirection) {
+        this.angleDirection = angleDirection;
+        this.fireEvent('compassAngleDirection', { angleDirection });
       },
       setDistance (distance) {
         distance = Geo.round(distance, this.roundingDistance);
@@ -358,10 +372,17 @@
   display: flex;
   justify-content: center;
 }
-.controls-vector > .v-text-field {
+.controls-vector > .v-text-field,
+.controls-vector .control-distance,
+.controls-vector .control-angle {
   flex: 0 1 8rem;
   margin-left: 1rem;
   margin-right: 1rem;
+}
+.controls-vector .control-angle .select-angle-direction {
+  text-align: right;
+  margin-top: -4px;
+  margin-bottom: -20px;
 }
 .compass {
   display: block;
