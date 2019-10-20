@@ -31,10 +31,22 @@ const Geo = {
     return Math.sqrt(dx * dx + dy * dy);
   },
   convertDegToRad (angle) {
-    return (angle * (Math.PI / 180));
+    return (angle * (Math.PI / 180.0));
   },
   convertRadToDeg (radians) {
-    return (radians * (180 / Math.PI));
+    return (radians * (180.0 / Math.PI));
+  },
+  rotatePoint (point, angle, anchor) {
+    const radians = this.convertDegToRad(angle);
+    const cosA = Math.cos(radians);
+    const sinA = Math.sin(radians);
+    const x = point.x - anchor.x;
+    const y = point.y - anchor.y;
+    const point2 = {
+      x: (x * cosA) - (y * sinA),
+      y: (x * sinA) + (y * cosA)
+    };
+    return point2;
   },
   round (value, rounding) {
     if (!this.isNumber(value)) {
