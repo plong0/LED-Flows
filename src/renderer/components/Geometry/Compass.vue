@@ -199,6 +199,35 @@
         const renderPointConnectors = [];
         if (this.hasReferencePoints) {
           if (this.referencePoints.length > 1) {
+            const cr = this.compassSize / 2.0;
+            const scale = this.referenceScale;
+            let rp0 = {
+              x: cr,
+              y: cr
+            };
+            for (let i = 0; i < this.referencePoints.length - 1; i++) {
+              let p0 = this.referencePoints[i];
+              let p1 = this.referencePoints[i + 1];
+              const px = (rp0.x + (p1.x - p0.x) * scale.x);
+              const py = (rp0.y + (p1.y - p0.y) * scale.y);
+              let rp1 = {
+                x: px,
+                y: py
+              };
+              const angle = Geo.calculateAngle(rp1, rp0);
+              const length = Geo.calculateDistance(rp0, rp1);
+              renderPointConnectors.push({
+                length: length,
+                angle: angle,
+                style: {
+                  left: `${px}px`,
+                  top: `${py}px`,
+                  width: `${length}px`,
+                  transform: `translateY(-50%) rotateZ(${angle}deg)`
+                }
+              });
+              rp0 = rp1;
+            }
           }
         }
         return renderPointConnectors;
