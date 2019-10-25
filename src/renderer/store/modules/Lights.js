@@ -88,16 +88,88 @@ const getters = {
     }
     return bounds;
   },
-  ledCount: (state, getters) => (id) => {
+  point: (state, getters) => (id, index = -1) => {
     const light = getters.light(id);
-    if (light && light.LEDs.length) {
-      let count = 0;
+    const pointCount = getters.pointCount(id);
+    if (light && pointCount > 0) {
+      if (index < 0) {
+        index = pointCount + index;
+      }
+      if (index >= 0 && index < pointCount) {
+        let offset = 0;
+        for (let address of light.LEDs) {
+          if (address.leads.length && (index - offset) < address.leads.length) {
+            const lead = address.leads[(index - offset)];
+            return {
+              position: {
+                x: lead.x,
+                y: lead.y
+              },
+              lead
+            };
+          }
+          // advance offset over the leads
+          offset += address.leads.length;
+
+          // check if index met
+          if (offset >= index) {
+            if (!address.LEDs.length) {
+              break;
+            }
+            // calculate average x, y of address.LEDs
+            let averagePoint = {
+              x: 0,
+              y: 0
+            };
+            for (let LED of address.LEDs) {
+              averagePoint.x += LED.x;
+              averagePoint.y += LED.y;
+            }
+            if (address.LEDs.length) {
+              averagePoint.x /= address.LEDs.length;
+              averagePoint.y /= address.LEDs.length;
+            }
+            return {
+              position: averagePoint,
+              LEDs: address.LEDs
+            };
+          }
+          // advance offset over the LED
+          if (address.LEDs.length) {
+            // increment by only one because LEDs are stacked at an index
+            offset += 1;
+          }
+        }
+      }
+    }
+    // nothing found
+    return null;
+  },
+  pointCount: (state, getters) => (id) => {
+    let count = -1;
+    const light = getters.light(id);
+    if (light) {
+      count = 0;
+      for (let address of light.LEDs) {
+        count += address.leads.length;
+        if (address.LEDs.length) {
+          // count stacked LEDs as 1 point
+          count += 1;
+        }
+      }
+    }
+    return count;
+  },
+  ledCount: (state, getters) => (id) => {
+    let count = -1;
+    const light = getters.light(id);
+    if (light) {
+      count = 0;
       for (let address of light.LEDs) {
         count += address.LEDs.length;
       }
-      return count;
     }
-    return 0;
+    return count;
   },
   light: (state) => (id) => state.lights[id],
   lights: (state) => Object.keys(state.lights).sort((a, b) => (parseInt(a) - parseInt(b))).map(id => state.lights[id]),
@@ -173,10 +245,10 @@ const mutations = {
 };
 
 const actions = {
-  addLead ({ dispatch }, { light, lead = { x: 0, y: 0 }, address = -1, index = -1 }) {
+  addLead ({ dispatch }, { light, lead = { x: 0, y: 0 }, address = null, index = null }) {
     return dispatch('addLeads', { light, address, index, leads: [lead] });
   },
-  addLeads ({ commit, getters, dispatch }, { light: { id, ..._light }, leads = [], address = -1, index = -1 }) {
+  addLeads ({ commit, getters, dispatch }, { light: { id, ..._light }, leads = [], address = null, index = null }) {
     leads = leads.filter(lead => lead);
     if (!leads.length) {
       return;
@@ -201,10 +273,10 @@ const actions = {
       });
     }
   },
-  addLED ({ dispatch }, { light, LED = { x: 0, y: 0 }, address = -1, stack = true }) {
+  addLED ({ dispatch }, { light, LED = { x: 0, y: 0 }, address = null, stack = true }) {
     return dispatch('addLEDs', { light, address, LEDs: [LED], stack });
   },
-  addLEDs ({ commit, getters, dispatch }, { light: { id, ..._light }, LEDs = [], address = -1, stack = true }) {
+  addLEDs ({ commit, getters, dispatch }, { light: { id, ..._light }, LEDs = [], address = null, stack = true }) {
     LEDs = LEDs.filter(LED => LED);
     if (!LEDs.length) {
       return;
@@ -217,6 +289,12 @@ const actions = {
       if (address < 0) {
         // push next address if none given
         address = light.LEDs.length;
+
+        // handle case of adding an LED to an address that doesn't have any yet
+        if (address && light.LEDs[address - 1] && !light.LEDs[address - 1].LEDs.length) {
+          address -= 1;
+          stack = true;
+        }
       }
       if (!stack && address < light.LEDs.length) {
         commit('SHIFT_ADDRESSES', { light, from: address, amount: LEDs.length });

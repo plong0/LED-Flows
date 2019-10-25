@@ -14,7 +14,7 @@
       </v-flex>
       <v-flex xs9>
         <v-slide-x-transition leave-absolute>
-          <v-layout row wrap :key="pageKey">
+          <v-layout row wrap class="led-list" :style="{minHeight: pageMinHeight}" :key="pageKey">
             <v-flex
               xs2
               v-for="(address, addressIndex) in limitBy(LEDs, pageLimit, pageOffset)"
@@ -98,11 +98,24 @@
         </v-btn>
       </v-flex>
     </v-layout>
-    <v-layout v-if="addLED" row wrap justify-center class="mt-1">
+    <v-layout v-if="addLED" row wrap justify-center class="add-led mt-1">
+      <compass v-model="compass" :rounding="{ distance: true, angle: 1 }" :manual-controls="true" :shrink-point="false" :reference-points="compassReferencePoints" :relative-reference-points="(angleMode === 'relative')">
+        <template v-slot:compass-controls>
+          <SelectSegment v-model="addToStart" width="64px" height="64px" class="add-position">
+            <template v-slot:tooltip-left>
+              Add to start
+            </template>
+            <template v-slot:tooltip-right>
+              Add to end
+            </template>
+          </SelectSegment>
+          <SelectAngleMode v-model="angleMode" width="36px" height="36px" class="angle-mode"></SelectAngleMode>
+        </template>
+      </compass>
       <v-btn
         round
         color="secondary"
-        @click="addLED(light)"
+        @click="addLED(light, null, addLocation, addToStart)"
       >
         <v-icon left>fa-plus</v-icon>
         Add LED
@@ -113,9 +126,12 @@
 
 <script>
   import LedDetails from './LedDetails';
+  import Compass from '@/components/Geometry/Compass';
+  import SelectSegment from '@/components/Geometry/SelectSegment';
+  import SelectAngleMode from '@/components/Geometry/SelectAngleMode';
 
   export default {
-    components: { LedDetails },
+    components: { LedDetails, Compass, SelectSegment, SelectAngleMode },
     props: {
       addLED: {
         type: Function
@@ -136,9 +152,26 @@
       }
     },
     data: () => ({
-      page: 0
+      page: 0,
+      compass: {
+        active: false,
+        angle: 0,
+        distance: 0
+      },
+      addToStart: false,
+      angleMode: 'absolute'
     }),
     computed: {
+      addLocation () {
+        if (this.compass.distance !== 0) {
+          return {
+            angle: parseFloat(this.compass.angle),
+            distance: parseFloat(this.compass.distance),
+            angleMode: this.angleMode
+          };
+        }
+        return null;
+      },
       LEDs () {
         return (this.light && this.light.LEDs) || [];
       },
@@ -163,8 +196,32 @@
           : 0
         );
       },
+      pageMinHeight () {
+        /**
+        min-height: 200px;
+        min-height: 160px;
+        */
+        return (this.maxVisible / 6 * 40) + 'px';
+      },
       pageOffset () {
         return (this.page * this.pageLimit);
+      },
+      compassReferencePoints () {
+        if (!this.light) {
+          return;
+        }
+        const points = [];
+        const pointCount = 6;
+        const direction = (this.addToStart ? 1 : -1);
+        const start = (this.addToStart ? 0 : -1);
+        for (let i = 0; i < pointCount; i++) {
+          const point = this.$store.getters['Lights/point'](this.light.id, (start + (i * direction)));
+          if (!point || !point.position) {
+            break;
+          }
+          points.push(point.position);
+        }
+        return points;
       }
     },
     watch: {
@@ -246,6 +303,9 @@
 </script>
 
 <style scoped>
+  .led-list {
+    align-content: flex-start;
+  }
   .extra-leds {
     position: absolute;
     z-index: 1;
@@ -255,5 +315,36 @@
     overflow-x: auto;
     border-radius: 4px;
     background-color: #616161;
+  }
+
+  .layout.add-led {
+    position: relative;
+  }
+  .layout.add-led .angle-mode {
+    position: absolute;
+    right: 0;
+    bottom: 40px;
+  }
+  .layout.add-led .add-position {
+    position: absolute;
+    right: 0;
+    bottom: -24px;
+  }
+  .angle-mode .icon {
+    color: var(--theme-secondary);
+  }
+  .angle-mode .accent--text .icon {
+    color: var(--theme-accent);
+  }
+
+  >>> .compass > .needle > .point {
+    border: 0 none transparent;
+    background-color: var(--theme-primary);
+    width: 10px;
+    height: 10px;
+    top: -5px;
+    right: -5px;
+    opacity: 1;
+    border-radius: 50%;
   }
 </style>
